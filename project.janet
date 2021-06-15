@@ -8,6 +8,7 @@
            "config.janet"
            "dagbuild.janet"
            "declare.janet"
+           "default-config.janet"
            "pm.janet"
            "rules.janet"
            "shutil.janet"]

@@ -63,6 +63,7 @@
                                       their full dependency tree.
       debug-repl : Run a repl in the context of the current project.janet file. This lets you run rules and
                    otherwise debug the current project.janet file.
+      save-config path : Save the input configuration to a file.
      ```)
 
   (print)
@@ -82,7 +83,7 @@
   (print "modpath:    " (dyn:modpath))
   (print "libpath:    " (dyn:libpath))
   (print "headerpath: " (dyn:headerpath))
-  (print "syspath:    " (dyn:syspath)))
+  (print "syspath:    " (dyn :syspath)))
 
 (defn build
   []
@@ -216,6 +217,7 @@
    "uninstall" uninstall-cmd
    "make-lockfile" make-lockfile
    "load-lockfile" load-lockfile
-   "quickbin" quickbin})
+   "quickbin" quickbin
+   "save-config" save-config})
 
 

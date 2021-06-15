@@ -140,6 +140,8 @@
 
 (defn- rule-impl
   [target deps thunk &opt phony]
+  (def all-targets (if (indexed? target) target [target]))
+  (def target (if (indexed? target) (first target) target))
   (def targets (getrules))
   (unless (get targets target)
     (def new-rule
@@ -150,7 +152,7 @@
     (put targets target new-rule))
   (each d deps (add-input target d))
   (unless phony
-    (add-output target target))
+    (each t all-targets (add-output target t)))
   (add-thunk target thunk))
 
 (defmacro rule

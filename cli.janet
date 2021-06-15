@@ -4,6 +4,7 @@
 
 (use ./config)
 (import ./commands)
+(import ./default-config)
 
 # Import some submodules to create a jpm env.
 (import ./declare :prefix "" :export true)
@@ -18,60 +19,24 @@
   (peg/compile
     '(* "--" '(some (if-not "=" 1)) (+ (* "=" '(any 1)) -1))))
 
-(defn main
-  "Script entry."
-  [& argv]
-
-  (def- args (tuple/slice argv 1))
-  (def- len (length args))
-
-  # Get env variables
-  (def JANET_PATH (os/getenv "JANET_PATH"))
-  (def JANET_HEADERPATH (os/getenv "JANET_HEADERPATH"))
-  (def JANET_LIBPATH (os/getenv "JANET_LIBPATH"))
-  (def JANET_MODPATH (os/getenv "JANET_MODPATH"))
-  (def JANET_BINPATH (os/getenv "JANET_BINPATH"))
-  (def JANET_PKGLIST (os/getenv "JANET_PKGLIST"))
-  (def JANET_GIT (os/getenv "JANET_GIT"))
-  (def JANET_JPM_CONFIG (os/getenv "JANET_JPM_CONFIG"))
-  (def CC (os/getenv "CC"))
-  (def CXX (os/getenv "CXX"))
-  (def AR (os/getenv "AR"))
-
-  # Set defaults for dynamic bindings
-  (setdyn :gitpath (or JANET_GIT "git"))
-  (setdyn :pkglist (or JANET_PKGLIST "https://github.com/janet-lang/pkgs.git"))
-  (setdyn :modpath (or JANET_MODPATH (dyn :syspath)))
-  (setdyn :headerpath (or JANET_HEADERPATH "/usr/local/include/janet"))
-  (setdyn :libpath (or JANET_LIBPATH "/usr/local/lib"))
-  (setdyn :binpath (or JANET_BINPATH "/usr/local/bin"))
-  (setdyn :use-batch-shell false)
-  (setdyn :cc (or CC "cc"))
-  (setdyn :c++ (or CXX "c++"))
-  (setdyn :cc-link (or CC "cc"))
-  (setdyn :c++-link (or CXX "c++"))
-  (setdyn :ar (or AR "ar"))
-  (setdyn :lflags @[])
-  (setdyn :ldflags @[])
-  (setdyn :cflags @["-std=c99"])
-  (setdyn :cppflags @["-std=c++11"])
-  (setdyn :dynamic-lflags @["-shared" "-lpthread"])
-  (setdyn :dynamic-cflags @["-fPIC"])
-  (setdyn :optimize 2)
-  (setdyn :modext ".so")
-  (setdyn :statext ".a")
-  (setdyn :is-msvc false)
-  (setdyn :libjanet (string (dyn :libpath) "/libjanet.a"))
-  (setdyn :janet-ldflags @[])
-  (setdyn :janet-lflags @["-lm" "-ldl" "-lrt" "-lpthread"])
-  (setdyn :janet-cflags @[])
-  (setdyn :jpm-env _env)
-  (setdyn :janet (dyn :executable))
-  (setdyn :auto-shebang true)
-  (setdyn :workers nil)
-  (setdyn :verbose false)
-
-  # Get flags
+(defn setup
+  ``Load configuration from the command line, environment variables, and
+  configuration files. Returns array of non-configuration arguments as well.
+  Config settings are prioritized as follows:
+     1. Commmand line settings
+     2. Environment variables
+     3. Config file settings (default-config if non specified)
+  ``
+  [args]
+  (defn setwhen [k envvar]
+    (when-let [v (os/getenv envvar)]
+      (setdyn k v)))
+  (setwhen :gitpath "JANET_GIT")
+  (setwhen :pkglist "JANET_PKGLIST")
+  (setwhen :modpath "JANET_MODPATH")
+  (setwhen :headerpath "JANET_HEADERPATH")
+  (setwhen :libpath "JANET_LIBPATH")
+  (setwhen :binpath "JANET_BINPATH")
   (def cmdbuf @[])
   (var flags-done false)
   (each a args
@@ -94,18 +59,19 @@
               (setdyn key v))
             (setdyn key true)))
         (array/push cmdbuf a))))
+  # Load the configuration file, or use default config.
+  (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]
+    (load-config-file cf false)
+    (load-config default-config/default-config false))
+  (setdyn :jpm-env _env)
+  (setdyn :janet (dyn :executable))
+  cmdbuf)
 
-  # Add extra settings
-  (when (dyn :verbose)
-    (array/push (dyn:cflags) "-Wall" "-Wextra")
-    (array/push (dyn:cppflags) "-Wall" "-Wextra"))
-  (when-let [cf (dyn :config-file JANET_JPM_CONFIG)]
-    (def conf (parse (slurp cf)))
-    (assert (dictionary? conf) "expected config file to be janet dictionary")
-    (eachp [k v] conf
-      (setdyn k v)))
-
-  # Run subcommand
+(defn main
+  "Script entry."
+  [& argv]
+  (def args (tuple/slice argv 1))
+  (def cmdbuf (setup args))
   (if (empty? cmdbuf)
     (commands/help)
     (if-let [com (get commands/subcommands (first cmdbuf))]

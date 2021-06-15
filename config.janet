@@ -20,6 +20,10 @@
   "Table of all of the help text for each config option."
   @{})
 
+(def config-set
+  "Listing of all config dyns."
+  @{})
+
 (defn- parse-boolean
   [kw x]
   (case (string/ascii-lower x)
@@ -59,12 +63,38 @@
   [kw &opt parser docs & meta]
   (put config-parsers kw (get config-parser-types parser))
   (put config-docs kw docs)
+  (put config-set kw true)
   (let [s (symbol "dyn:" kw)]
     ~(defn ,s ,;meta [&opt dflt]
        (def x (,dyn ,kw dflt))
        (if (= x nil)
          (,errorf "no value found for dynamic binding %v" ,kw)
          x))))
+
+(defn save-config
+  "Write the current configuration information to a file."
+  [path]
+  (def data @{})
+  (eachk k config-set (put data k (dyn k)))
+  (def d (table/to-struct data))
+  (def buf @"")
+  (buffer/format buf "%j" d) # ensure no funny stuff gets written to config file
+  (buffer/clear buf)
+  (def output (buffer/format buf "%p" d))
+  (spit path output))
+
+(defn load-config
+  "Load a configuration from a table or struct."
+  [settings &opt override]
+  (assert (dictionary? settings) "expected config file to be a dictionary")
+  (eachp [k v] settings
+    (setdyn k (if override v (dyn k v)))))
+
+(defn load-config-file
+  "Load a configuration from a file. If override is set, will override already set values.
+  Otherwise will prefer the current value over the settings from the config file."
+  [path &opt override]
+  (load-config (-> path slurp parse) override))
 
 # All jpm settings.
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
@@ -87,6 +117,7 @@
 (defdyn :cc-link :string)
 (defdyn :cflags nil)
 (defdyn :cppflags nil)
+(defdyn :cflags-verbose nil)
 (defdyn :dynamic-cflags nil)
 (defdyn :dynamic-lflags nil)
 (defdyn :is-msvc :boolean)
@@ -94,7 +125,6 @@
 (defdyn :lflags nil)
 (defdyn :modext nil)
 (defdyn :statext nil)
-(defdyn :syspath nil)
 (defdyn :use-batch-shell :boolean)
 (defdyn :libjanet :string)
 

@@ -50,6 +50,7 @@
   [opts compiler]
   (def flags (if (= compiler :cc) :cflags :cppflags))
   @[;(opt opts flags)
+    ;(if (dyn:verbose) (dyn:cflags-verbose) [])
     (string "-I" (dyn:headerpath))
     (string "-I" (dyn:modpath))
     (string "-O" (opt opts :optimize))])
@@ -63,7 +64,8 @@
   "Compile a C file into an object file."
   [compiler opts src dest &opt static?]
   (def cc (opt opts compiler))
-  (def cflags [;(getflags opts compiler) ;(if static? [] (dyn :dynamic-cflags))])
+  (def cflags [;(getflags opts compiler)
+               ;(if static? [] (dyn :dynamic-cflags))])
   (def entry-defines (if-let [n (and static? (opts :entry-name))]
                        [(make-define "JANET_ENTRY_NAME" n)]
                        []))
@@ -323,7 +325,9 @@ int main(int argc, const char **argv) {
         # Compile and link final exectable
         (unless no-compile
           (def ldflags [;dep-ldflags ;(opt opts :ldflags []) ;(dyn :janet-ldflags)])
-          (def lflags [;static-libs (dyn :libjanet) ;dep-lflags ;(opt opts :lflags) ;(dyn :janet-lflags)])
+          (def lflags [;static-libs 
+                       (string (dyn:libpath) "/libjanet" (dyn:statext))
+                        ;dep-lflags ;(opt opts :lflags) ;(dyn :janet-lflags)])
           (def defines (make-defines (opt opts :defines {})))
           (def cc (opt opts :cc))
           (def cflags [;(getflags opts :cc) ;(dyn :janet-cflags)])

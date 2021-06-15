@@ -105,9 +105,8 @@
         (rimraf bundle-dir)
         (error (string "could not clone git dependency " url)))))
   (unless (or (dyn :offline) fresh)
-    (git "-C" bundle-dir gd wt "pull" "origin" "master" "--ff-only"))
-  (when tag
-    (git "-C" bundle-dir gd wt "reset" "--hard" tag))
+    (git "-C" bundle-dir gd wt "pull" "origin" tag "--ff-only"))
+  (git "-C" bundle-dir gd wt "reset" "--hard" tag)
   (unless (dyn :offline)
     (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive"))
   bundle-dir)
