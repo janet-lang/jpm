@@ -13,7 +13,11 @@
   ret)
 
 (def config-parsers 
-  "A table of all of the dynamic config bindings."
+  "A table of all of the dynamic config bindings to parsers."
+  @{})
+
+(def config-checkers
+  "A table of all of the dynamic config bindings to checkers (validators)."
   @{})
 
 (def config-docs
@@ -23,6 +27,10 @@
 (def config-set
   "Listing of all config dyns."
   @{})
+
+#
+# Entry Parsers
+#
 
 (defn- parse-boolean
   [kw x]
@@ -51,19 +59,57 @@
   [kw x]
   x)
 
+(defn- parse-string-array
+  [kw x]
+  (string/split "," x))
+
 (def- config-parser-types
   "A table of all of the option parsers."
   @{:int parse-integer
+    :int-opt parse-integer
     :string parse-string
+    :string-opt parse-string
+    :string-array parse-string-array
     :boolean parse-boolean})
+
+#
+# Entry Checkers
+#
+
+(defn- string-array?
+  [x]
+  (and (indexed? x)
+       (all string? x)))
+
+(defn- boolean-or-nil?
+  [x]
+  (or (nil? x) (boolean? x)))
+
+(defn- string-or-nil?
+  [x]
+  (or (nil? x) (string? x)))
+
+(defn- int-or-nil?
+  [x]
+  (or (nil? x) (int? x)))
+
+(def- config-checker-types
+  "A table of all of the option checkers"
+  @{:int int?
+    :int-opt int-or-nil?
+    :string string?
+    :string-opt string-or-nil?
+    :string-array string-array?
+    :boolean boolean-or-nil?})
 
 (defmacro defdyn
   "Define a function that wraps (dyn :keyword). This will
   allow use of dynamic bindings with static runtime checks."
   [kw &opt parser docs & meta]
   (put config-parsers kw (get config-parser-types parser))
+  (put config-checkers kw (get config-checker-types parser))
   (put config-docs kw docs)
-  (put config-set kw true)
+  (put config-set kw parser)
   (let [s (symbol "dyn:" kw)]
     ~(defn ,s ,;meta [&opt dflt]
        (def x (,dyn ,kw dflt))
@@ -88,7 +134,14 @@
   [settings &opt override]
   (assert (dictionary? settings) "expected config file to be a dictionary")
   (eachp [k v] settings
-    (setdyn k (if override v (dyn k v)))))
+    (setdyn k (if override v (dyn k v))))
+  # now check
+  (eachk k config-set
+    (def ctype (get config-set k))
+    (def checker (get config-checkers k))
+    (def value (dyn k))
+    (when (and checker (not (checker value)))
+      (errorf "invalid configuration binding %v, expected %v, got %v" k ctype value))))
 
 (defn load-config-file
   "Load a configuration from a file. If override is set, will override already set values.
@@ -98,7 +151,7 @@
 
 # All jpm settings.
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
-(defdyn :config-file :string "A config file to load to load settings from")
+(defdyn :config-file :string-opt "A config file to load to load settings from")
 (defdyn :gitpath :string "The path or command name of git used by jpm")
 (defdyn :headerpath :string "Directory containing Janet headers")
 (defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
@@ -106,7 +159,7 @@
   "The directory that contains janet libraries for standalone binaries and other native artifacts")
 (defdyn :modpath :string "The directory tree to install packages to")
 (defdyn :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
-(defdyn :pkglist :string "The package listing bundle to use for mapping short package names to full URLs.")
+(defdyn :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
 (defdyn :offline :boolean "Do not download remote repositories when installing packages")
 
 # Settings that probably shouldn't be set from the command line.
@@ -115,22 +168,22 @@
 (defdyn :c++-link :string)
 (defdyn :cc :string)
 (defdyn :cc-link :string)
-(defdyn :cflags nil)
-(defdyn :cppflags nil)
-(defdyn :cflags-verbose nil)
-(defdyn :dynamic-cflags nil)
-(defdyn :dynamic-lflags nil)
+(defdyn :cflags :string-array)
+(defdyn :cppflags :string-array)
+(defdyn :cflags-verbose :string-array)
+(defdyn :dynamic-cflags :string-array)
+(defdyn :dynamic-lflags :string-array)
 (defdyn :is-msvc :boolean)
-(defdyn :ldflags nil)
-(defdyn :lflags nil)
-(defdyn :modext nil)
-(defdyn :statext nil)
+(defdyn :msvc-vcvars-script :string-opt)
+(defdyn :ldflags :string-array)
+(defdyn :lflags :string-array)
+(defdyn :modext :string)
+(defdyn :statext :string)
 (defdyn :use-batch-shell :boolean)
-(defdyn :libjanet :string)
 
 # Settings that should probably only be set from the command line
-(defdyn :auto-shebang :boolean)
+(defdyn :auto-shebang :boolean "Automatically add a shebang line to installed janet scripts")
 (defdyn :silent :boolean "Show less output than usually and silence output from subprocesses")
 (defdyn :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
-(defdyn :workers :int "The number of parallel workers to build with")
+(defdyn :workers :int-opt "The number of parallel workers to build with")
 (defdyn :nocolor :boolean "Disables color in the debug repl")

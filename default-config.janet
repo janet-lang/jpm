@@ -22,6 +22,7 @@
    :libpath "/usr/local/lib"
    :modext ".so"
    :modpath "/usr/local/lib/janet"
+   :nocolor false
    :optimize 2
    :pkglist "https://github.com/janet-lang/pkgs.git"
    :silent false
