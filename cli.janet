@@ -85,7 +85,7 @@
       (if-let [m (peg/match argpeg a)]
         (do
           (def key (keyword (get m 0)))
-          (def value-parser (get config-dyns key))
+          (def value-parser (get config-parsers key))
           (unless value-parser
             (error (string "unknown cli option " key)))
           (if (= 2 (length m))

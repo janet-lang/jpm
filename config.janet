@@ -3,8 +3,21 @@
 ### and configure the behavior of the module.
 ###
 
-(def config-dyns 
+(defn opt
+  "Get an option, allowing overrides via dynamic bindings AND some
+  default value dflt if no dynamic binding is set."
+  [opts key &opt dflt]
+  (def ret (or (get opts key) (dyn key dflt)))
+  (if (= nil ret)
+    (error (string "option :" key " not set")))
+  ret)
+
+(def config-parsers 
   "A table of all of the dynamic config bindings."
+  @{})
+
+(def config-docs
+  "Table of all of the help text for each config option."
   @{})
 
 (defn- parse-boolean
@@ -34,7 +47,7 @@
   [kw x]
   x)
 
-(def- config-parsers
+(def- config-parser-types
   "A table of all of the option parsers."
   @{:int parse-integer
     :string parse-string
@@ -43,8 +56,9 @@
 (defmacro defdyn
   "Define a function that wraps (dyn :keyword). This will
   allow use of dynamic bindings with static runtime checks."
-  [kw parser & meta]
-  (put config-dyns kw (get config-parsers parser))
+  [kw &opt parser docs & meta]
+  (put config-parsers kw (get config-parser-types parser))
+  (put config-docs kw docs)
   (let [s (symbol "dyn:" kw)]
     ~(defn ,s ,;meta [&opt dflt]
        (def x (,dyn ,kw dflt))
@@ -52,47 +66,41 @@
          (,errorf "no value found for dynamic binding %v" ,kw)
          x))))
 
-(defn opt
-  "Get an option, allowing overrides via dynamic bindings AND some
-  default value dflt if no dynamic binding is set."
-  [opts key &opt dflt]
-  (def ret (or (get opts key) (dyn key dflt)))
-  (if (= nil ret)
-    (error (string "option :" key " not set")))
-  ret)
-
 # All jpm settings.
+(defdyn :binpath :string "The directory to install executable binaries and scripts to")
+(defdyn :config-file :string "A config file to load to load settings from")
+(defdyn :gitpath :string "The path or command name of git used by jpm")
+(defdyn :headerpath :string "Directory containing Janet headers")
+(defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
+(defdyn :libpath :string
+  "The directory that contains janet libraries for standalone binaries and other native artifacts")
+(defdyn :modpath :string "The directory tree to install packages to")
+(defdyn :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
+(defdyn :pkglist :string "The package listing bundle to use for mapping short package names to full URLs.")
+(defdyn :offline :boolean "Do not download remote repositories when installing packages")
+
+# Settings that probably shouldn't be set from the command line.
 (defdyn :ar :string)
-(defdyn :auto-shebang :boolean)
-(defdyn :binpath :string)
 (defdyn :c++ :string)
 (defdyn :c++-link :string)
 (defdyn :cc :string)
 (defdyn :cc-link :string)
 (defdyn :cflags nil)
-(defdyn :config-file :string)
 (defdyn :cppflags nil)
 (defdyn :dynamic-cflags nil)
 (defdyn :dynamic-lflags nil)
-(defdyn :gitpath :string)
-(defdyn :headerpath :string)
 (defdyn :is-msvc :boolean)
-(defdyn :janet :string)
-(defdyn :janet-cflags nil)
-(defdyn :janet-ldflags nil)
-(defdyn :janet-lflags nil)
 (defdyn :ldflags nil)
 (defdyn :lflags nil)
-(defdyn :libjanet :string)
-(defdyn :libpath :string)
 (defdyn :modext nil)
-(defdyn :modpath :string)
-(defdyn :offline :boolean)
-(defdyn :optimize :int)
-(defdyn :pkglist :string)
-(defdyn :silent :boolean)
 (defdyn :statext nil)
 (defdyn :syspath nil)
 (defdyn :use-batch-shell :boolean)
-(defdyn :verbose :boolean)
-(defdyn :workers :int)
+(defdyn :libjanet :string)
+
+# Settings that should probably only be set from the command line
+(defdyn :auto-shebang :boolean)
+(defdyn :silent :boolean "Show less output than usually and silence output from subprocesses")
+(defdyn :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
+(defdyn :workers :int "The number of parallel workers to build with")
+(defdyn :nocolor :boolean "Disables color in the debug repl")

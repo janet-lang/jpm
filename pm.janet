@@ -70,7 +70,7 @@
 (defn resolve-bundle-name
   "Convert short bundle names to URLs."
   [bname]
-  (if (string/find ":" bname)
+  (if-not (string/find ":" bname)
     (let [pkgs (try
                  (require "pkgs")
                  ([err]
@@ -91,6 +91,8 @@
   (os/mkdir cache)
   (def id (filepath-replace url))
   (def bundle-dir (string cache "/" id))
+  (def gd (string "--git-dir=" bundle-dir "/.git"))
+  (def wt "--work-tree=.")
   (var fresh false)
   (if (dyn :offline)
     (if (not= :directory (os/stat bundle-dir :mode))
@@ -102,14 +104,12 @@
       (unless (zero? (git "clone" url bundle-dir))
         (rimraf bundle-dir)
         (error (string "could not clone git dependency " url)))))
-  (def gd (string "--git-dir=" bundle-dir "/.git"))
-  (def wt (string "--work-tree=" bundle-dir))
   (unless (or (dyn :offline) fresh)
-    (git gd wt "pull" "origin" "master" "--ff-only"))
+    (git "-C" bundle-dir gd wt "pull" "origin" "master" "--ff-only"))
   (when tag
-    (git gd wt "reset" "--hard" tag))
+    (git "-C" bundle-dir gd wt "reset" "--hard" tag))
   (unless (dyn :offline)
-    (git gd wt "submodule" "update" "--init" "--recursive"))
+    (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive"))
   bundle-dir)
 
 (defn bundle-install
@@ -133,7 +133,7 @@
           ["build" "install"]
           ["install-deps" "build" "install"]))
       (each r rules
-        (build-rules (get dep-env :rules {}) r)))))
+        (build-rules (get dep-env :rules {}) [r])))))
 
 (set bundle-install-recursive bundle-install)
 

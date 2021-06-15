@@ -11,76 +11,65 @@
 
 (defn help
   []
-  (print `
-usage: jpm [--key=value, --flag] ... [subcommand] [args] ...
+  (print 
+    ```
+    usage: jpm [--key=value, --flag] ... [subcommand] [args] ...
 
-Run from a directory containing a project.janet file to perform operations
-on a project, or from anywhere to do operations on the global module cache (modpath).
-Commands that need write permission to the modpath are considered privileged commands - in
-some environments they may require super user privileges.
-Other project-level commands need to have a ./project.janet file in the current directory.
+    Run from a directory containing a project.janet file to perform operations
+    on a project, or from anywhere to do operations on the global module cache (modpath).
+    Commands that need write permission to the modpath are considered privileged commands - in
+    some environments they may require super user privileges.
+    Other project-level commands need to have a ./project.janet file in the current directory.
 
-Unprivileged global subcommands:
-  help : show this help text
-  show-paths : prints the paths that will be used to install things.
-  quickbin entry executable : Create an executable from a janet script with a main function.
+    Unprivileged global subcommands:
+      help : show this help text
+      show-paths : prints the paths that will be used to install things.
+      quickbin entry executable : Create an executable from a janet script with a main function.
 
-Privileged global subcommands:
-  install (repo or name)... : install artifacts. If a repo is given, install the contents of that
-                   git repository, assuming that the repository is a jpm project. If not, build
-                   and install the current project.
-  uninstall (module)... : uninstall a module. If no module is given, uninstall the module
-                       defined by the current directory.
-  clear-cache : clear the git cache. Useful for updating dependencies.
-  clear-manifest : clear the manifest. Useful for fixing broken installs.
-  make-lockfile (lockfile) : Create a lockfile based on repositories in the cache. The
-            lockfile will record the exact versions of dependencies used to ensure a reproducible
-            build. Lockfiles are best used with applications, not libraries. The default lockfile
-            name is lockfile.jdn.
-  load-lockfile (lockfile) : Install modules from a lockfile in a reproducible way. The
-                             default lockfile name is lockfile.jdn.
-  update-pkgs : Update the current package listing from the remote git repository selected.
+    Privileged global subcommands:
+      install (repo or name)... : install artifacts. If a repo is given, install the contents of that
+                       git repository, assuming that the repository is a jpm project. If not, build
+                       and install the current project.
+      uninstall (module)... : uninstall a module. If no module is given, uninstall the module
+                           defined by the current directory.
+      clear-cache : clear the git cache. Useful for updating dependencies.
+      clear-manifest : clear the manifest. Useful for fixing broken installs.
+      make-lockfile (lockfile) : Create a lockfile based on repositories in the cache. The
+                lockfile will record the exact versions of dependencies used to ensure a reproducible
+                build. Lockfiles are best used with applications, not libraries. The default lockfile
+                name is lockfile.jdn.
+      load-lockfile (lockfile) : Install modules from a lockfile in a reproducible way. The
+                                 default lockfile name is lockfile.jdn.
+      update-pkgs : Update the current package listing from the remote git repository selected.
 
-Privileged project subcommands:
-  deps : install dependencies for the current project.
-  install : install artifacts of the current project.
-  uninstall : uninstall the current project's artifacts.
+    Privileged project subcommands:
+      deps : install dependencies for the current project.
+      install : install artifacts of the current project.
+      uninstall : uninstall the current project's artifacts.
 
-Unprivileged project subcommands:
-  build : build all artifacts
-  clean : remove any generated files or artifacts
-  test : run tests. Tests should be .janet files in the test/ directory relative to project.janet.
-  run rule : run a rule. Can also run custom rules added via (phony "task" [deps...] ...)
-             or (rule "ouput.file" [deps...] ...).
-  rules : list rules available with run.
-  list-installed : list installed packages in the current syspath.
-  list-pkgs (search) : list packages in the package listing that the contain the string search.
-                       If no search pattern is given, prints the entire package listing.
-  rule-tree (root rule) (depth) : Print a nice tree to see what rules depend on other rules.
-                                  Optionally provide a root rule to start printing from, and a
-                                  max depth to print. Without these options, all rules will print
-                                  their full dependency tree.
-  debug-repl : Run a repl in the context of the current project.janet file. This lets you run rules and
-               otherwise debug the current project.janet file.
+    Unprivileged project subcommands:
+      build : build all artifacts
+      clean : remove any generated files or artifacts
+      test : run tests. Tests should be .janet files in the test/ directory relative to project.janet.
+      run rule : run a rule. Can also run custom rules added via (phony "task" [deps...] ...)
+                 or (rule "ouput.file" [deps...] ...).
+      rules : list rules available with run.
+      list-installed : list installed packages in the current syspath.
+      list-pkgs (search) : list packages in the package listing that the contain the string search.
+                           If no search pattern is given, prints the entire package listing.
+      rule-tree (root rule) (depth) : Print a nice tree to see what rules depend on other rules.
+                                      Optionally provide a root rule to start printing from, and a
+                                      max depth to print. Without these options, all rules will print
+                                      their full dependency tree.
+      debug-repl : Run a repl in the context of the current project.janet file. This lets you run rules and
+                   otherwise debug the current project.janet file.
+     ```)
 
-Keys are:
-  --modpath : The directory to install modules to. Defaults to $JANET_MODPATH, $JANET_PATH, or (dyn :syspath)
-  --headerpath : The directory containing janet headers. Defaults to $JANET_HEADERPATH.
-  --binpath : The directory to install binaries and scripts. Defaults to $JANET_BINPATH.
-  --libpath : The directory containing janet C libraries (libjanet.*). Defaults to $JANET_LIBPATH.
-  --compiler : C compiler to use for natives. Defaults to $CC or cc (cl.exe on windows).
-  --cpp-compiler : C++ compiler to use for natives. Defaults to $CXX or c++ (cl.exe on windows).
-  --archiver : C archiver to use for static libraries. Defaults to $AR ar (lib.exe on windows).
-  --linker : C linker to use for linking natives. Defaults to link.exe on windows, not used on
-             other platforms.
-  --pkglist : URL of git repository for package listing. Defaults to $JANET_PKGLIST or https://github.com/janet-lang/pkgs.git
-
-Flags are:
-  --nocolor : Disable color in the jpm repl.
-  --verbose : Print shell commands as they are executed.
-  --test : If passed to jpm install, runs tests before installing. Will run tests recursively on dependencies.
-  --offline : Prevents jpm from going to network to get dependencies - all dependencies should be in the cache or this command will fail.
-    `))
+  (print)
+  (print "Keyword arguments:")
+  (each k (sort (keys config-docs))
+    (print "  --" k " : " (get config-docs k)))
+  (print))
 
 (defn- local-rule
   [rule &opt no-deps]
