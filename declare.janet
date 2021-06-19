@@ -240,14 +240,23 @@
   (rule manifest ["uninstall"]
         (print "generating " manifest "...")
         (os/mkdir manifests)
-        (def sha (pslurp (string "\"" (dyn:gitpath) "\" rev-parse HEAD")))
-        (def url (pslurp (string "\"" (dyn:gitpath) "\" remote get-url origin")))
+        (def bundle-type (dyn :bundle-type :git))
         (def man
-          {:sha (if-not (empty? sha) sha)
-           :repo (if-not (empty? url) url)
-           :dependencies (array/slice (get meta :dependencies []))
-           :paths installed-files})
-        (spit manifest (string/format "%j\n" man)))
+          @{:dependencies (array/slice (get meta :dependencies []))
+            :paths installed-files
+            :type bundle-type})
+        (case bundle-type
+          :git
+          (do
+            (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" remote get-url origin"))]
+              (put man :url (if-not (empty? x) x)))
+            (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" rev-parse HEAD"))]
+              (put man :sha (if-not (empty? x) x))))
+          :tar
+          (do
+            (put man :url (slurp ".bundle-tar-url")))
+          (errorf "unknown bundle type %v" bundle-type))
+        (spit manifest (string/format "%j\n" (table/to-struct man))))
 
   (task "install" ["uninstall" "build" manifest]
         (when (dyn :test)

@@ -77,8 +77,8 @@
 
 (var- bundle-install-recursive nil)
 
-(defn resolve-bundle-name
-  "Convert short bundle names to URLs."
+(defn- resolve-bundle-name
+  "Convert short bundle names to full tables."
   [bname]
   (if-not (string/find ":" bname)
     (let [pkgs (try
@@ -91,6 +91,28 @@
         (error (string "bundle " bname " not found.")))
       url)
     bname))
+
+(defn resolve-bundle
+  "Convert any bundle string/table to the normalized table form."
+  [bundle]
+  (var repo nil)
+  (var tag nil)
+  (var btype nil)
+  (if (dictionary? bundle)
+    (do
+      (set repo (get bundle :repo))
+      (set tag (get bundle :tag))
+      (set btype (get bundle :type)))
+    (let [parts (string/split "::" bundle)]
+      (case (length parts)
+        1 (set repo (get parts 0))
+        2 (do (set repo (get parts 1)) (set btype (keyword (get parts 0))))
+        3 (do
+            (set btype (keyword (get parts 0)))
+            (set repo (get parts 1))
+            (set tag (get parts 2)))
+        (errorf "unable to parse bundle string %v" bundle))))
+  {:repo (resolve-bundle-name repo) :tag tag :type btype})
 
 (defn download-git-bundle
   "Download a git bundle from a remote respository"
@@ -105,9 +127,7 @@
     (when (os/mkdir bundle-dir)
       (set fresh true)
       (print "cloning repository " url " to " bundle-dir)
-      (unless (zero? (git "clone" url bundle-dir))
-        (rimraf bundle-dir)
-        (error (string "could not clone git dependency " url)))))
+      (git "clone" url bundle-dir)))
   (unless (or (dyn :offline) fresh)
     (git "-C" bundle-dir gd wt "pull" "origin" tag "--ff-only"))
   (git "-C" bundle-dir gd wt "reset" "--hard" tag)
@@ -115,14 +135,16 @@
     (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive")))
 
 (defn download-tar-bundle
-  "Download a dependency from a tape archive."
-  [bundle-dir url]
+  "Download a dependency from a tape archive. The archive should have exactly one
+  top level directory that contains the contents of the project."
+  [bundle-dir url &opt force-gz]
   (def has-gz (string/has-suffix? "gz" url))
   (def is-remote (string/find ":" url))
   (def dest-archive (if is-remote (string bundle-dir "/bundle-archive." (if has-gz "tar.gz" "tar")) url))
   (os/mkdir bundle-dir)
   (when is-remote
     (curl "-sL" url "--output" dest-archive))
+  (spit (string bundle-dir "/.bundle-tar-url") url)
   (def tar-flags (if has-gz "-xzf" "-xf"))
   (tar tar-flags dest-archive "--strip-components=1" "-C" bundle-dir))
 
@@ -144,22 +166,23 @@
 
 (defn bundle-install
   "Install a bundle from a git repository."
-  [repotab &opt no-deps]
-  (def repo (resolve-bundle-name
-              (if (string? repotab) repotab (repotab :repo))))
-  (def tag (unless (string? repotab) (repotab :tag)))
-  (def bundle-type (unless (string? repotab) (repotab :type)))
+  [repo &opt no-deps]
+  (def {:repo repo
+        :tag tag
+        :type bundle-type}
+   (resolve-bundle repo))
   (def bdir (download-bundle repo bundle-type tag))
   (def olddir (os/cwd))
   (defer (os/cd olddir)
     (os/cd bdir)
     (with-dyns [:rules @{}
+                :bundle-type (or bundle-type :git)
                 :modpath (abspath (dyn:modpath))
                 :headerpath (abspath (dyn:headerpath))
                 :libpath (abspath (dyn:libpath))
                 :binpath (abspath (dyn:binpath))]
       (def dep-env (require-jpm "./project.janet" true))
-      (def rules 
+      (def rules
         (if no-deps
           ["build" "install"]
           ["install-deps" "build" "install"]))
@@ -212,8 +235,8 @@
   [&opt filename]
   (default filename "lockfile.jdn")
   (def lockarray (parse (slurp filename)))
-  (each {:repo url :sha sha} lockarray
-    (bundle-install {:repo url :tag sha} true)))
+  (each {:repo url :sha sha :type bundle-type} lockarray
+    (bundle-install {:repo url :tag sha :type bundle-type} true)))
 
 (defn uninstall
   "Uninstall bundle named name"
