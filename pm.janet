@@ -52,7 +52,17 @@
 (defn git
   "Make a call to git."
   [& args]
-  (os/execute [(dyn:gitpath) ;args] :px))
+  (shell (dyn:gitpath) ;args))
+
+(defn tar
+  "Make a call to tar."
+  [& args]
+  (shell (dyn:tarpath) ;args))
+
+(defn curl
+  "Make a call to curl"
+  [& args]
+  (shell (dyn:curlpath) ;args))
 
 (defn install-rule
   "Add install and uninstall rule for moving file from src into destdir."
@@ -82,15 +92,9 @@
       url)
     bname))
 
-(defn download-bundle
-  "Donwload the package source (using git) to the local cache. Return the
-  path to the downloaded or cached soure code."
-  [url &opt tag]
-  (default tag "master")
-  (def cache (find-cache))
-  (os/mkdir cache)
-  (def id (filepath-replace url))
-  (def bundle-dir (string cache "/" id))
+(defn download-git-bundle
+  "Download a git bundle from a remote respository"
+  [bundle-dir url tag]
   (def gd (string "--git-dir=" bundle-dir "/.git"))
   (def wt "--work-tree=.")
   (var fresh false)
@@ -108,7 +112,34 @@
     (git "-C" bundle-dir gd wt "pull" "origin" tag "--ff-only"))
   (git "-C" bundle-dir gd wt "reset" "--hard" tag)
   (unless (dyn :offline)
-    (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive"))
+    (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive")))
+
+(defn download-tar-bundle
+  "Download a dependency from a tape archive."
+  [bundle-dir url]
+  (def has-gz (string/has-suffix? "gz" url))
+  (def is-remote (string/find ":" url))
+  (def dest-archive (if is-remote (string bundle-dir "/bundle-archive." (if has-gz "tar.gz" "tar")) url))
+  (os/mkdir bundle-dir)
+  (when is-remote
+    (curl "-sL" url "--output" dest-archive))
+  (def tar-flags (if has-gz "-xzf" "-xf"))
+  (tar tar-flags dest-archive "--strip-components=1" "-C" bundle-dir))
+
+(defn download-bundle
+  "Donwload the package source (using git) to the local cache. Return the
+  path to the downloaded or cached soure code."
+  [url &opt bundle-type tag]
+  (default bundle-type :git)
+  (default tag "master")
+  (def cache (find-cache))
+  (os/mkdir cache)
+  (def id (filepath-replace url))
+  (def bundle-dir (string cache "/" id))
+  (case bundle-type
+    :git (download-git-bundle bundle-dir url tag)
+    :tar (download-tar-bundle bundle-dir url)
+    (errorf "unknown bundle type %v" bundle-type))
   bundle-dir)
 
 (defn bundle-install
@@ -117,7 +148,8 @@
   (def repo (resolve-bundle-name
               (if (string? repotab) repotab (repotab :repo))))
   (def tag (unless (string? repotab) (repotab :tag)))
-  (def bdir (download-bundle repo tag))
+  (def bundle-type (unless (string? repotab) (repotab :type)))
+  (def bdir (download-bundle repo bundle-type tag))
   (def olddir (os/cwd))
   (defer (os/cd olddir)
     (os/cd bdir)

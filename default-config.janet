@@ -11,6 +11,7 @@
    :cflags @["-std=c99"]
    :cppflags @["-std=c++11"]
    :cflags-verbose @["-Wall" "-Wextra"]
+   :curlpath "curl"
    :dynamic-cflags @["-fPIC"]
    :dynamic-lflags @["-shared" "-lpthread"]
    :gitpath "git"
@@ -27,5 +28,6 @@
    :pkglist "https://github.com/janet-lang/pkgs.git"
    :silent false
    :statext ".a"
+   :tarpath "tar"
    :use-batch-shell false
    :verbose false})

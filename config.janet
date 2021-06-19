@@ -153,6 +153,8 @@
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
 (defdyn :config-file :string-opt "A config file to load to load settings from")
 (defdyn :gitpath :string "The path or command name of git used by jpm")
+(defdyn :tarpath :string "The path or command name of tar used by jpm")
+(defdyn :curlpath :string "The path or command name of curl used by jpm")
 (defdyn :headerpath :string "Directory containing Janet headers")
 (defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
 (defdyn :libpath :string
