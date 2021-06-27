@@ -324,28 +324,28 @@ int main(int argc, const char **argv) {
         (def oimage_dest (out-path cimage_dest ".c" ".o"))
         # Compile and link final exectable
         (unless no-compile
-          (def ldflags [;dep-ldflags ;(opt opts :ldflags []) ;(dyn :janet-ldflags)])
+          (def ldflags [;dep-ldflags ;(opt opts :ldflags [])])
           (def lflags [;static-libs 
                        (string (dyn:libpath) "/libjanet" (dyn:statext))
-                        ;dep-lflags ;(opt opts :lflags) ;(dyn :janet-lflags)])
+                        ;dep-lflags ;(opt opts :lflags []) ;(dyn:janet-lflags)])
           (def defines (make-defines (opt opts :defines {})))
           (def cc (opt opts :cc))
-          (def cflags [;(getflags opts :cc) ;(dyn :janet-cflags)])
+          (def cflags [;(getflags opts :cc) ;(dyn:janet-cflags)])
           (print "compiling " cimage_dest " to " oimage_dest "...")
           (create-dirs oimage_dest)
-          (if (dyn :is-msvc)
+          (if (dyn:is-msvc)
             (shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
             (shell cc "-c" cimage_dest ;defines ;cflags "-o" oimage_dest))
           (if has-cpp
             (let [linker (opt opts (if (dyn :is-msvc) :cpp-linker :cpp-compiler))
-                  cppflags [;(getflags opts :c++) ;(dyn :janet-cflags)]]
+                  cppflags [;(getflags opts :c++) ;(dyn:janet-cflags)]]
               (print "linking " dest "...")
-              (if (dyn :is-msvc)
+              (if (dyn:is-msvc)
                 (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
-            (let [linker (opt opts (if (dyn :is-msvc) :linker :compiler))]
+            (let [linker (opt opts (if (dyn:is-msvc) :linker :compiler))]
               (print "linking " dest "...")
               (create-dirs dest)
-              (if (dyn :is-msvc)
+              (if (dyn:is-msvc)
                 (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cflags ;ldflags `-o` dest oimage_dest ;lflags)))))))

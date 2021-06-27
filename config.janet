@@ -147,7 +147,11 @@
   "Load a configuration from a file. If override is set, will override already set values.
   Otherwise will prefer the current value over the settings from the config file."
   [path &opt override]
-  (load-config (-> path slurp parse) override))
+  (def config-table
+    (if (string/has-suffix? ".janet" path)
+      (-> path dofile (get-in ['config :value]))
+      (-> path slurp parse)))
+  (load-config config-table override))
 
 # All jpm settings.
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
@@ -159,7 +163,7 @@
 (defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
 (defdyn :libpath :string
   "The directory that contains janet libraries for standalone binaries and other native artifacts")
-(defdyn :modpath :string "The directory tree to install packages to")
+(defdyn :modpath :string-opt "The directory tree to install packages to")
 (defdyn :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
 (defdyn :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
 (defdyn :offline :boolean "Do not download remote repositories when installing packages")
@@ -182,6 +186,8 @@
 (defdyn :modext :string "File extension for shared objects")
 (defdyn :statext :string "File extension for static libraries")
 (defdyn :use-batch-shell :boolean "Switch to turn on if using the Batch shell on windows instead of POSIX shell")
+(defdyn :janet-lflags :string-array "Link flags to pass when linking to libjanet")
+(defdyn :janet-cflags :string-array "Compiler flags to pass when linking to libjanet")
 
 # Settings that should probably only be set from the command line
 (defdyn :auto-shebang :boolean "Automatically add a shebang line to installed janet scripts")

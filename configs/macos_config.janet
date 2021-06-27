@@ -1,9 +1,9 @@
-(def config
-  "A default configuration that is useful if no other configuration is found.
-  Should work on many linux systems when Janet is install /usr/local."
+(def prefix "/usr/local")
+
+(def config 
   {:ar "ar"
    :auto-shebang true
-   :binpath "/usr/local/bin"
+   :binpath (string prefix "/bin")
    :c++ "c++"
    :c++-link "c++"
    :cc "cc"
@@ -13,18 +13,18 @@
    :cppflags @["-std=c++11"]
    :curlpath "curl"
    :dynamic-cflags @["-fPIC"]
-   :dynamic-lflags @["-shared" "-lpthread"]
+   :dynamic-lflags @["-shared" "-undefined" "dynamic_lookup" "-lpthread"]
    :gitpath "git"
-   :headerpath "/usr/local/include/janet"
+   :headerpath (string prefix "/include/janet")
    :is-msvc false
    :janet "janet"
    :janet-cflags @[]
-   :janet-lflags @["-lm" "-ldl" "-lrt"]
+   :janet-lflags @["-lm" "-ldl"]
    :ldflags @[]
    :lflags @[]
-   :libpath "/usr/local/lib"
+   :libpath (string prefix "/lib")
    :modext ".so"
-   :modpath "/usr/local/lib/janet"
+   :modpath (string prefix "/lib/janet")
    :nocolor false
    :optimize 2
    :pkglist "https://github.com/janet-lang/pkgs.git"
