@@ -65,15 +65,21 @@
   (shell (dyn:curlpath) ;args))
 
 (defn install-rule
-  "Add install and uninstall rule for moving file from src into destdir."
+  "Add install and uninstall rule for moving files from src into destdir."
   [src destdir]
-  (def parts (peg/match path-splitter src))
-  (def name (last parts))
+  (def name (last (peg/match path-splitter src)))
   (def path (string destdir "/" name))
   (array/push (dyn :installed-files) path)
   (task "install" []
-          (os/mkdir destdir)
-          (copy src destdir)))
+        (os/mkdir destdir)
+        (copy src destdir)))
+
+(defn install-file-rule
+  "Add install and uninstall rule for moving file from src into destdir."
+  [src dest]
+  (array/push (dyn :installed-files) dest)
+  (task "install" []
+        (copyfile src dest)))
 
 (var- bundle-install-recursive nil)
 

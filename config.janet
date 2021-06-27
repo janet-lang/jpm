@@ -180,7 +180,6 @@
 (defdyn :dynamic-cflags :string-array "List of flags to pass only when compiler shared objects")
 (defdyn :dynamic-lflags :string-array "List of flags to pass when linking shared objects")
 (defdyn :is-msvc :boolean "Switch to turn on if using MSVC compiler instead of POSIX compliant compiler")
-(defdyn :msvc-vcvars-script :string-opt "Path to the vcvars[32/64/all].bat script to do compilation")
 (defdyn :ldflags :string-array "Linker flags for OS libraries needed when compiling C/C++ artifacts")
 (defdyn :lflags :string-array "Non-library linker flags when compiling C/C++ artifacts")
 (defdyn :modext :string "File extension for shared objects")
@@ -195,3 +194,4 @@
 (defdyn :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
 (defdyn :workers :int-opt "The number of parallel workers to build with")
 (defdyn :nocolor :boolean "Disables color in the debug repl")
+(defdyn :bootstrap-config :string-opt "When bootstrapping, choose a configuration file to use to override the default configuration file.")

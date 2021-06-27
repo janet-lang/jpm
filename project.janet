@@ -8,11 +8,14 @@
            "config.janet"
            "dagbuild.janet"
            "declare.janet"
-           "default-config.janet"
            "pm.janet"
            "rules.janet"
            "shutil.janet"]
   :prefix "jpm")
+
+# Install the default configuration for bootstrapping
+(when-let [bc (dyn :bootstrap-config "default-config.janet")]
+  (install-file-rule bc (string (dyn :modpath) "/jpm/default-config.janet")))
 
 (declare-binscript
   :main "jpm"

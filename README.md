@@ -22,3 +22,12 @@ To replace the original `jpm` tool with this port (or just install this tool in 
 $ [sudo] janet cli.janet install
 ```
 
+There are also several example config files in the `configs` directory, and you can use the environment
+variable `JANET_JPM_CONFIG` to use a configuration file. The config files can be either `janet` or `jdn`
+files. To override/set the default configuration, replace the contents of default-config.janet with a
+customized config file before installing. To select a configuration file to use to override the default
+when installing, use the `--bootstrap-config=` command line option.
+
+```
+$ [sudo] janet cli.janet install --bootstrap-config=configs/msvc_config.janet
+```

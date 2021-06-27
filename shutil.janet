@@ -106,6 +106,12 @@
              "/y" "/s" "/e" "/i"))
     (shell "cp" "-rf" src dest)))
 
+(defn copyfile
+  "Copy a file one location to another."
+  [src dest]
+  (print "copying file " src " to " dest "...")
+  (->> src slurp (spit dest)))
+
 (defn abspath
   "Create an absolute path. Does not resolve . and .. (useful for
   generating entries in install manifest file)."
