@@ -337,13 +337,13 @@ int main(int argc, const char **argv) {
             (shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
             (shell cc "-c" cimage_dest ;defines ;cflags "-o" oimage_dest))
           (if has-cpp
-            (let [linker (opt opts (if (dyn :is-msvc) :cpp-linker :cpp-compiler))
+            (let [linker (opt opts (if (dyn :is-msvc) :c++-link :c++))
                   cppflags [;(getflags opts :c++) ;(dyn:janet-cflags)]]
               (print "linking " dest "...")
               (if (dyn:is-msvc)
                 (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
-            (let [linker (opt opts (if (dyn:is-msvc) :linker :compiler))]
+            (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
               (print "linking " dest "...")
               (create-dirs dest)
               (if (dyn:is-msvc)
