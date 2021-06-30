@@ -31,5 +31,6 @@
    :silent false
    :statext ".a"
    :tarpath "tar"
+   :test false
    :use-batch-shell false
    :verbose false})

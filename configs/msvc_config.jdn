@@ -22,7 +22,8 @@
  :optimize 2
  :pkglist "https://github.com/janet-lang/pkgs.git"
  :silent false
- :statext ".lib"
+ :statext ".static.lib"
  :tarpath "tar"
+ :test false
  :use-batch-shell true
  :verbose false}

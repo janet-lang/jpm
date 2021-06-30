@@ -19,10 +19,6 @@
   (peg/compile
     '(* "--" '(some (if-not "=" 1)) (+ (* "=" '(any 1)) -1))))
 
-(defn- setwhen [k envvar]
-  (when-let [v (os/getenv envvar)]
-    (setdyn k v)))
-
 (defn setup
   ``Load configuration from the command line, environment variables, and
   configuration files. Returns array of non-configuration arguments as well.
@@ -32,12 +28,7 @@
      3. Config file settings (default-config if non specified)
   ``
   [args]
-  (setwhen :gitpath "JANET_GIT")
-  (setwhen :pkglist "JANET_PKGLIST")
-  (setwhen :modpath "JANET_MODPATH")
-  (setwhen :headerpath "JANET_HEADERPATH")
-  (setwhen :libpath "JANET_LIBPATH")
-  (setwhen :binpath "JANET_BINPATH")
+  (read-env-variables)
   (def cmdbuf @[])
   (var flags-done false)
   (each a args

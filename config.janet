@@ -153,6 +153,22 @@
       (-> path slurp parse)))
   (load-config config-table override))
 
+(defn- setwhen [k envvar]
+  (when-let [v (os/getenv envvar)]
+    (setdyn k v)))
+
+(defn read-env-variables
+  "Read environment variables that correspond to config variables into dyns."
+  []
+  (setwhen :gitpath "JANET_GIT")
+  (setwhen :tarpath "JANET_TAR")
+  (setwhen :curlpath "JANET_CURL")
+  (setwhen :pkglist "JANET_PKGLIST")
+  (setwhen :modpath "JANET_MODPATH")
+  (setwhen :headerpath "JANET_HEADERPATH")
+  (setwhen :libpath "JANET_LIBPATH")
+  (setwhen :binpath "JANET_BINPATH"))
+
 # All jpm settings.
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
 (defdyn :config-file :string-opt "A config file to load to load settings from")
@@ -194,4 +210,5 @@
 (defdyn :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
 (defdyn :workers :int-opt "The number of parallel workers to build with")
 (defdyn :nocolor :boolean "Disables color in the debug repl")
+(defdyn :test :boolean "Enable testing when installing.")
 (defdyn :bootstrap-config :string-opt "When bootstrapping, choose a configuration file to use to override the default configuration file.")

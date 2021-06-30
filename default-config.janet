@@ -2,7 +2,7 @@
 ### default-config.janet
 ###
 ### A jpm configuration file that tries to autodetect reasonable defaults on various platforms.
-### this configuration can be overriden uopn installation.
+### this configuration can be replaced during installation with --bootstrap-config.
 ###
 
 
@@ -23,7 +23,7 @@
     :cc-link (if iswin "link.exe" "cc")
     :cflags (if iswin @["/nologo" "/MD"] @["-std=c99"])
     :cppflags (if iswin @["/nologo" "/MD" "/EHsc"] @["-std=c++11"])
-    :cflags-verbose (if iswin @["/Wall"] @["-Wall" "-Wextra"])
+    :cflags-verbose (if iswin @[] @["-Wall" "-Wextra"])
     :curlpath "curl"
     :dynamic-cflags (case hostos
                       :windows @["/LD"]
@@ -50,8 +50,9 @@
     :optimize 2
     :pkglist "https://github.com/janet-lang/pkgs.git"
     :silent false
-    :statext (if iswin ".lib" ".a")
+    :statext (if iswin ".static.lib" ".a")
     :tarpath "tar"
+    :test false
     :use-batch-shell iswin
     :verbose false})
 

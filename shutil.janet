@@ -87,7 +87,8 @@
   "Do a shell command"
   [& args]
   (def args (map string args))
-  (if (dyn :verbose)
+  (when (dyn :verbose)
+    (flush)
     (print ;(interpose " " args)))
   (if (dyn :silent)
     (with [dn (devnull)]
@@ -102,7 +103,8 @@
     (let [end (last (peg/match path-splitter src))
           isdir (= (os/stat src :mode) :directory)]
       (shell "C:\\Windows\\System32\\xcopy.exe"
-             (string/replace "/" "\\" src) (string/replace "/" "\\" (if isdir (string dest "\\" end) dest))
+             (string/replace "/" "\\" src)
+             (string/replace "/" "\\" (if isdir (string dest "\\" end) dest))
              "/y" "/s" "/e" "/i"))
     (shell "cp" "-rf" src dest)))
 

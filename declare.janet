@@ -16,6 +16,7 @@
   (def sources (opts :source))
   (def name (opts :name))
   (def path (dyn:modpath))
+  (def declare-targets @{})
 
   (def modext (dyn:modext))
   (def statext (dyn:statext))
@@ -48,6 +49,7 @@
       (create-buffer-c src c-src (embed-name src))
       (compile-c :cc opts c-src o-src)))
   (link-c has-cpp opts lname ;objects)
+  (put declare-targets :native lname)
   (add-dep "build" lname)
   (install-rule lname path)
 
@@ -56,6 +58,7 @@
   (def ename (entry-name name))
   (rule metaname []
         (print "generating meta file " metaname "...")
+        (flush)
         (os/mkdir "build")
         (spit metaname (string/format
                          "# Metadata for static library %s\n\n%.20p"
@@ -65,6 +68,7 @@
                           :ldflags ~',(opts :ldflags)
                           :lflags ~',(opts :lflags)})))
   (add-dep "build" metaname)
+  (put declare-targets :meta metaname)
   (install-rule metaname path)
 
   # Make static module
@@ -97,7 +101,10 @@
 
     (archive-c opts sname ;sobjects)
     (add-dep "build" sname)
-    (install-rule sname path)))
+    (put declare-targets :static sname)
+    (install-rule sname path))
+
+  declare-targets)
 
 (defn declare-source
   "Create Janet modules. This does not actually build the module(s),
@@ -106,7 +113,7 @@
   :prefix can optionally be given to modify the destination path to be
   (string JANET_PATH prefix source)."
   [&keys {:source sources :prefix prefix}]
-  (def path (string (dyn:modpath) "/" (or prefix "")))
+  (def path (string (dyn:modpath) (if prefix "/") prefix))
   (if (bytes? sources)
     (install-rule sources path)
     (each s sources
@@ -213,12 +220,14 @@
       (case (os/stat ndir :mode)
         :file (when (string/has-suffix? ".janet" ndir)
                 (print "running " ndir " ...")
+                (flush)
                 (def result (os/execute [(dyn:janet) ndir] :p))
                 (when (not= 0 result)
                   (errorf "non-zero exit code in %s: %d" ndir result)))
         :directory (dodir ndir))))
   (dodir (or root-directory "test"))
-  (print "All tests passed."))
+  (print "All tests passed.")
+  (flush))
 
 (defn declare-project
   "Define your project metadata. This should
@@ -239,6 +248,7 @@
   (task "manifest" [manifest])
   (rule manifest ["uninstall"]
         (print "generating " manifest "...")
+        (flush)
         (os/mkdir manifests)
         (def bundle-type (dyn :bundle-type :git))
         (def man
@@ -261,13 +271,14 @@
   (task "install" ["uninstall" "build" manifest]
         (when (dyn :test)
           (run-tests))
-        (print "Installed as '" (meta :name) "'."))
+        (print "Installed as '" (meta :name) "'.")
+        (flush))
 
   (task "install-deps" []
         (if-let [deps (meta :dependencies)]
           (each dep deps
             (bundle-install dep))
-          (print "no dependencies found")))
+          (do (print "no dependencies found") (flush))))
 
   (task "uninstall" []
         (uninstall (meta :name)))
@@ -275,7 +286,8 @@
   (task "clean" []
         (when (os/stat "./build" :mode)
           (rm "build")
-          (print "Deleted build directory.")))
+          (print "Deleted build directory.")
+          (flush)))
 
   (task "test" ["build"]
          (run-tests)))

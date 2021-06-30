@@ -72,7 +72,7 @@
   (def defines [;(make-defines (opt opts :defines {})) ;entry-defines])
   (def headers (or (opts :headers) []))
   (rule dest [src ;headers]
-        (unless (dyn:verbose) (print "compiling " src " to " dest "..."))
+        (unless (dyn:verbose) (print "compiling " src " to " dest "...") (flush))
         (create-dirs dest)
         (if (dyn :is-msvc)
           (shell cc ;defines "/c" ;cflags (string "/Fo" dest) src)
@@ -91,7 +91,7 @@
   (def dep-importlibs (seq [x :in deplibs] (string (dyn:modpath) "/" x ".lib")))
   (def ldflags [;(opt opts :ldflags []) ;dep-ldflags])
   (rule target objects
-        (unless (dyn:verbose) (print "linking " target "..."))
+        (unless (dyn:verbose) (print "linking " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
           (shell linker ;ldflags (string "/OUT:" target) ;objects
@@ -103,7 +103,7 @@
   [opts target & objects]
   (def ar (opt opts :ar))
   (rule target objects
-        (unless (dyn:verbose) (print "creating static library " target "..."))
+        (unless (dyn:verbose) (print "creating static library " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
           (shell ar "/nologo" (string "/out:" target) ;objects)
@@ -132,6 +132,7 @@
   [source dest name]
   (rule dest [source]
         (print "generating " dest "...")
+        (flush)
         (create-dirs dest)
         (with [f (file/open source :r)]
           (create-buffer-c-impl (:read f :all) dest name))))
@@ -139,12 +140,12 @@
 (defn modpath-to-meta
   "Get the meta file path (.meta.janet) corresponding to a native module path (.so)."
   [path]
-  (string (string/slice path 0 (- (length (dyn :modext)))) "meta.janet"))
+  (string (string/slice path 0 (- (length (dyn:modext)))) "meta.janet"))
 
 (defn modpath-to-static
   "Get the static library (.a) path corresponding to a native module path (.so)."
   [path]
-  (string (string/slice path 0 (- -1 (length (dyn :modext)))) (dyn :statext)))
+  (string (string/slice path 0 (- -1 (length (dyn:modext)))) (dyn:statext)))
 
 (defn make-bin-source
   [declarations lookup-into-invocations no-core]
@@ -257,7 +258,8 @@ int main(int argc, const char **argv) {
   (def cimage_dest (string dest ".c"))
   (def no-compile (opts :no-compile))
   (rule (if no-compile cimage_dest dest) [source]
-        (print "generating executable c source...")
+        (print "generating executable c source " cimage_dest " from " source "...")
+        (flush)
         (create-dirs dest)
         # Load entry environment and get main function.
         (def entry-env (dofile source))
@@ -284,6 +286,7 @@ int main(int argc, const char **argv) {
                :when n
                :let [prefix (gensym)]]
           (print "found native " n "...")
+          (flush)
           (put prefixes prefix n)
           (array/push static-libs (modpath-to-static n))
           (def oldproto (table/getproto m))
@@ -326,12 +329,13 @@ int main(int argc, const char **argv) {
         (unless no-compile
           (def ldflags [;dep-ldflags ;(opt opts :ldflags [])])
           (def lflags [;static-libs 
-                       (string (dyn:libpath) "/libjanet" (dyn:statext))
+                       (string (dyn:libpath) "/libjanet." (last (string/split "." (dyn:statext))))
                         ;dep-lflags ;(opt opts :lflags []) ;(dyn:janet-lflags)])
           (def defines (make-defines (opt opts :defines {})))
           (def cc (opt opts :cc))
           (def cflags [;(getflags opts :cc) ;(dyn:janet-cflags)])
           (print "compiling " cimage_dest " to " oimage_dest "...")
+          (flush)
           (create-dirs oimage_dest)
           (if (dyn:is-msvc)
             (shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
@@ -340,11 +344,13 @@ int main(int argc, const char **argv) {
             (let [linker (opt opts (if (dyn :is-msvc) :c++-link :c++))
                   cppflags [;(getflags opts :c++) ;(dyn:janet-cflags)]]
               (print "linking " dest "...")
+              (flush)
               (if (dyn:is-msvc)
                 (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
             (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
               (print "linking " dest "...")
+              (flush)
               (create-dirs dest)
               (if (dyn:is-msvc)
                 (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
