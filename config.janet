@@ -176,6 +176,7 @@
 (defdyn :tarpath :string "The path or command name of tar used by jpm")
 (defdyn :curlpath :string "The path or command name of curl used by jpm")
 (defdyn :headerpath :string "Directory containing Janet headers")
+(defdyn :manpath :string-opt "Directory to install man pages to")
 (defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
 (defdyn :libpath :string
   "The directory that contains janet libraries for standalone binaries and other native artifacts")

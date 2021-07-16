@@ -44,7 +44,7 @@
     :ldflags @[]
     :lflags (case hostos
               :windows @["/nologo"]
-              :macos @[])
+              @[])
     :modext (if iswin ".dll" ".so")
     :nocolor false
     :optimize 2
@@ -58,7 +58,8 @@
 
 (unless iswin
   # Guess PREFIX to use for paths
-  (var prefix "/usr/local")
+  (def prefix "/usr/local")
+  (put config :manpath (string prefix "/share/man/man1"))
   (put config :headerpath (string prefix "/include/janet"))
   (put config :binpath (string prefix "/bin"))
   (put config :libpath (string prefix "/lib"))

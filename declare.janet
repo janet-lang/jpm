@@ -210,6 +210,12 @@
   (add-dep "build" iname)
   (install-rule iname path))
 
+(defn declare-manpage
+  "Mark a manpage for installation"
+  [page]
+  (when-let [mp (dyn :manpath)]
+    (install-rule page mp)))
+
 (defn run-tests
   "Run tests on a project in the current directory."
   [&opt root-directory]
