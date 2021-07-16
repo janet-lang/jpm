@@ -37,10 +37,10 @@
     :janet "janet"
     :janet-cflags @[]
     :janet-lflags (case hostos
-                    :linux @["-lm" "-ldl" "-lrt"]
-                    :macos @["-lm" "-ldl"]
+                    :linux @["-lm" "-ldl" "-lrt" "-pthread"]
+                    :macos @["-lm" "-ldl" "-pthread"]
                     :windows @[]
-                    @["-lm"])
+                    @["-lm" "-pthread"])
     :ldflags @[]
     :lflags (case hostos
               :windows @["/nologo"]

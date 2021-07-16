@@ -13,13 +13,13 @@
    :cppflags @["-std=c++11"]
    :curlpath "curl"
    :dynamic-cflags @["-fPIC"]
-   :dynamic-lflags @["-shared" "-lpthread"]
+   :dynamic-lflags @["-shared" "-pthread"]
    :gitpath "git"
    :headerpath (string prefix "/include/janet")
    :is-msvc false
    :janet "janet"
    :janet-cflags @[]
-   :janet-lflags @["-lm"]
+   :janet-lflags @["-lm" "-pthread"]
    :ldflags @[]
    :lflags @[]
    :libpath (string prefix "/lib")

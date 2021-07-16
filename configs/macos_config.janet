@@ -19,7 +19,7 @@
    :is-msvc false
    :janet "janet"
    :janet-cflags @[]
-   :janet-lflags @["-lm" "-ldl"]
+   :janet-lflags @["-lm" "-ldl" "-lpthread"]
    :ldflags @[]
    :lflags @[]
    :libpath (string prefix "/lib")
