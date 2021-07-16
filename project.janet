@@ -10,7 +10,8 @@
            "declare.janet"
            "pm.janet"
            "rules.janet"
-           "shutil.janet"]
+           "shutil.janet"
+           "cgen.janet"]
   :prefix "jpm")
 
 # Install the default configuration for bootstrapping
