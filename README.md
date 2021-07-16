@@ -1,6 +1,6 @@
 # jpm
 
-JPM is the Panet Project Manager tool. It is for automating builds and downloading
+JPM is the Janet Project Manager tool. It is for automating builds and downloading
 dependencies of Janet projects. This project is a port of the original `jpm` tool
 (which started as a single file script) to add more functionality, clean up code, make
 more portable and configuable, and
