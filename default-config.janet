@@ -58,7 +58,7 @@
 
 (unless iswin
   # Guess PREFIX to use for paths
-  (def prefix (or (os/getenv "PREFIX") "/usr/local"))
+  (def prefix (or (os/getenv "JANET_PREFIX") "/usr/local"))
   (put config :manpath (string prefix "/share/man/man1"))
   (put config :headerpath (string prefix "/include/janet"))
   (put config :binpath (string prefix "/bin"))
