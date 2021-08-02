@@ -103,13 +103,19 @@
   (defn emit-ptr-type
     [x alias]
     (emit-type x)
-    (prin "*")
+    (prin " *")
+    (if alias (prin alias)))
+
+  (defn emit-ptr-ptr-type
+    [x alias]
+    (emit-type x)
+    (prin " **")
     (if alias (prin alias)))
 
   (defn emit-const-type
     [x alias]
+    (prin "const ")
     (emit-type x)
-    (prin " const")
     (if alias (prin " " alias)))
 
   (defn emit-array-type
@@ -118,7 +124,8 @@
     (emit-type x)
     (if alias (prin " " alias))
     (prin "[")
-    (emit-expression n true)
+    (when n
+      (emit-expression n true))
     (prin "]")
     (if-not alias (prin ")")))
 
@@ -135,7 +142,10 @@
         'named-union (emit-union-def (definition 1) (slice definition 2) alias)
         'fn (emit-fn-pointer-type (definition 1) (slice definition 2) alias)
         'ptr (emit-ptr-type (definition 1) alias)
-        'array (emit-array-type (definition 1) (definition 2) alias)
+        '* (emit-ptr-type (definition 1) alias)
+        'ptrptr (emit-ptr-ptr-type (definition 1) alias)
+        '** (emit-ptr-ptr-type (definition 1) alias)
+        'array (emit-array-type (definition 1) (get definition 2) alias)
         'const (emit-const-type (definition 1) alias)
         (errorf "unexpected type form %v" definition))
       :keyword (do (prin definition) (if alias (prin " " alias)))

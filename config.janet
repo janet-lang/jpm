@@ -3,6 +3,8 @@
 ### and configure the behavior of the module.
 ###
 
+(import ./default-config)
+
 (defn opt
   "Get an option, allowing overrides via dynamic bindings AND some
   default value dflt if no dynamic binding is set."
@@ -152,6 +154,11 @@
       (-> path dofile (get-in ['config :value]))
       (-> path slurp parse)))
   (load-config config-table override))
+
+(defn load-default
+  "Load the default configuration."
+  [&opt override]
+  (load-config default-config/config override))
 
 (defn- setwhen [k envvar]
   (when-let [v (os/getenv envvar)]

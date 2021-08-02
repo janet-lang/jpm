@@ -5,7 +5,6 @@
 ### this configuration can be replaced during installation with --bootstrap-config.
 ###
 
-
 (def hostos (os/which))
 (def iswin (= :windows hostos))
 
