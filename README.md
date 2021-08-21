@@ -16,7 +16,8 @@ we are trying to keep most functionality a drop-in replacement where it makes se
 
 ## Bootstrapping
 
-To replace the original `jpm` tool with this port (or just install this tool in the first place), run
+To replace the original `jpm` tool with this port (or just install this tool in the first place),
+clone this repo, and from its directory, run
 
 ```
 $ [sudo] janet cli.janet install
