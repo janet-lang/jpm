@@ -1,0 +1,14 @@
+{:title "Rule Declarations"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][declare/]
+
+## Reference
+
+@api-docs[jpm/][declare/]
+

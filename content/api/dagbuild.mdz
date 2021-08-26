@@ -1,0 +1,14 @@
+{:title "Parallel DAG Processing"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][dagbuild/]
+
+## Reference
+
+@api-docs[jpm/][dagbuild/]
+

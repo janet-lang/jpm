@@ -114,7 +114,12 @@
 
 (defn deps
   []
-  (local-rule "install-deps" true))
+  (import-rules "./project.janet" true)
+  (def meta (dyn :project))
+  (if-let [deps (meta :dependencies)]
+    (each dep deps
+      (bundle-install dep))
+    (do (print "no dependencies found") (flush))))
 
 (defn- print-rule-tree
   "Show dependencies for a given rule recursively in a nice tree."

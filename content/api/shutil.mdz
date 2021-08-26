@@ -1,0 +1,14 @@
+{:title "Shell Utilities"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][shutil/]
+
+## Reference
+
+@api-docs[jpm/][shutil/]
+

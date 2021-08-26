@@ -1,0 +1,14 @@
+{:title "C Generation"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][cgen/]
+
+## Reference
+
+@api-docs[jpm/][cgen/]
+

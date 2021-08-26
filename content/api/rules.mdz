@@ -1,0 +1,14 @@
+{:title "Rule Engine"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][rules/]
+
+## Reference
+
+@api-docs[jpm/][rules/]
+

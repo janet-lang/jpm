@@ -13,14 +13,30 @@
     (merge-into into x))
   into)
 
+(def- mod-rules (require "./rules"))
+(def- mod-shutil (require "./shutil"))
+(def- mod-cc (require "./cc"))
+(def- mod-cgen (require "./cgen"))
+(def- mod-declare (require "./declare"))
+(def- mod-pm (curenv))
+
 (defn make-jpm-env
   "Create an environment that is preloaded with jpm symbols."
   [&opt base-env]
-  (default base-env (dyn :jpm-env {}))
+  (def envs-to-add
+    [mod-declare
+     mod-shutil
+     mod-rules
+     mod-cc
+     mod-cgen
+     mod-pm
+     (or base-env {})])
   (def env (make-env))
-  (loop [k :keys base-env :when (symbol? k)
-         :let [x (get base-env k)]]
-    (unless (get x :private) (put env k x)))
+  (loop [e :in envs-to-add
+         k :keys e :when (symbol? k)
+         :let [x (get e k)]]
+    (unless (get x :private)
+      (put env k x)))
   (def currenv (proto-flatten @{} (curenv)))
   (loop [k :keys currenv :when (keyword? k)]
     (put env k (currenv k)))
@@ -63,23 +79,6 @@
   "Make a call to curl"
   [& args]
   (shell (dyn:curlpath) ;args))
-
-(defn install-rule
-  "Add install and uninstall rule for moving files from src into destdir."
-  [src destdir]
-  (def name (last (peg/match path-splitter src)))
-  (def path (string destdir "/" name))
-  (array/push (dyn :installed-files) path)
-  (task "install" []
-        (os/mkdir destdir)
-        (copy src destdir)))
-
-(defn install-file-rule
-  "Add install and uninstall rule for moving file from src into destdir."
-  [src dest]
-  (array/push (dyn :installed-files) dest)
-  (task "install" []
-        (copyfile src dest)))
 
 (var- bundle-install-recursive nil)
 
@@ -188,11 +187,12 @@
                 :libpath (abspath (dyn:libpath))
                 :binpath (abspath (dyn:binpath))]
       (def dep-env (require-jpm "./project.janet" true))
-      (def rules
-        (if no-deps
-          ["build" "install"]
-          ["install-deps" "build" "install"]))
-      (each r rules
+      (unless no-deps
+        (def meta (dep-env  :project))
+        (if-let [deps (meta :dependencies)]
+          (each dep deps
+            (bundle-install dep))))
+      (each r ["build" "install"]
         (build-rules (get dep-env :rules {}) [r])))))
 
 (set bundle-install-recursive bundle-install)
@@ -244,20 +244,6 @@
   (each {:repo url :sha sha :type bundle-type} lockarray
     (bundle-install {:repo url :tag sha :type bundle-type} true)))
 
-(defn uninstall
-  "Uninstall bundle named name"
-  [name]
-  (def manifest (find-manifest name))
-  (when-with [f (file/open manifest)]
-    (def man (parse (:read f :all)))
-    (each path (get man :paths [])
-      (print "removing " path)
-      (rm path))
-    (print "removing manifest " manifest)
-    (:close f) # I hate windows
-    (rm manifest)
-    (print "Uninstalled.")))
-
 (defmacro post-deps
   "Run code at the top level if jpm dependencies are installed. Build
   code that imports dependencies should be wrapped with this macro, as project.janet
@@ -270,3 +256,4 @@
   "Evaluate a given rule in a one-off manner."
   [target]
   (build-rules (dyn :rules) [target] (dyn :workers)))
+

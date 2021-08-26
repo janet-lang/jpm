@@ -1,0 +1,14 @@
+{:title "Commands"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][commands/]
+
+## Reference
+
+@api-docs[jpm/][commands/]
+

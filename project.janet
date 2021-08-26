@@ -1,4 +1,5 @@
 (declare-project
+  :version "0.0.1"
   :name "jpm")
 
 (declare-source
@@ -9,6 +10,7 @@
            "jpm/config.janet"
            "jpm/dagbuild.janet"
            "jpm/declare.janet"
+           "jpm/init.janet"
            "jpm/pm.janet"
            "jpm/rules.janet"
            "jpm/shutil.janet"

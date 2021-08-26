@@ -6,15 +6,6 @@
 (import ./commands)
 (import ./default-config)
 
-# Import some submodules to create a jpm env.
-(import ./declare :prefix "" :export true)
-(import ./rules :prefix "" :export true)
-(import ./shutil :prefix "" :export true)
-(import ./cc :prefix "" :export true)
-(import ./pm :prefix "" :export true)
-
-(def- _env (curenv))
-
 (def- argpeg
   (peg/compile
     '(+
@@ -58,6 +49,7 @@
                   (setdyn key v))
                 (setdyn key true)))))
         (array/push cmdbuf a))))
+
   # Load the configuration file, or use default config.
   (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]
     (load-config-file cf false)
@@ -70,7 +62,6 @@
   (if (dyn :local)
     (commands/enable-local-mode))
 
-  (setdyn :jpm-env _env)
   (setdyn :janet (dyn :executable))
   cmdbuf)
 

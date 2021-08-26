@@ -1,0 +1,14 @@
+{:title "Configuration"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"}
+---
+
+## Index
+
+@api-index[jpm/][config/]
+
+## Reference
+
+@api-docs[jpm/][config/]
+

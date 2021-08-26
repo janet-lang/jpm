@@ -6,7 +6,37 @@
 (use ./rules)
 (use ./shutil)
 (use ./cc)
-(use ./pm)
+
+(defn install-rule
+  "Add install and uninstall rule for moving files from src into destdir."
+  [src destdir]
+  (def name (last (peg/match path-splitter src)))
+  (def path (string destdir "/" name))
+  (array/push (dyn :installed-files) path)
+  (task "install" []
+        (os/mkdir destdir)
+        (copy src destdir)))
+
+(defn install-file-rule
+  "Add install and uninstall rule for moving file from src into destdir."
+  [src dest]
+  (array/push (dyn :installed-files) dest)
+  (task "install" []
+        (copyfile src dest)))
+
+(defn uninstall
+  "Uninstall bundle named name"
+  [name]
+  (def manifest (find-manifest name))
+  (when-with [f (file/open manifest)]
+    (def man (parse (:read f :all)))
+    (each path (get man :paths [])
+      (print "removing " path)
+      (rm path))
+    (print "removing manifest " manifest)
+    (:close f) # I hate windows
+    (rm manifest)
+    (print "Uninstalled.")))
 
 (defn declare-native
   "Declare a native module. This is a shared library that can be loaded
@@ -279,12 +309,6 @@
           (run-tests))
         (print "Installed as '" (meta :name) "'.")
         (flush))
-
-  (task "install-deps" []
-        (if-let [deps (meta :dependencies)]
-          (each dep deps
-            (bundle-install dep))
-          (do (print "no dependencies found") (flush))))
 
   (task "uninstall" []
         (uninstall (meta :name)))

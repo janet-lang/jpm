@@ -1,0 +1,8 @@
+{:title "jpm"
+ :author "Calvin Rose"
+ :license "MIT"
+ :template "mdzdoc/main.html"
+ :order 0}
+---
+
+JPM is that Janet project manager.

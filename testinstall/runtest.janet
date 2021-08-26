@@ -2,11 +2,11 @@
 ### Test that the installation works correctly.
 ###
 
-(import ../cli)
-(import ../commands)
-(import ../shutil)
-(import ../default-config)
-(import ../config)
+(import ../jpm/cli)
+(import ../jpm/commands)
+(import ../jpm/shutil)
+(import ../jpm/default-config)
+(import ../jpm/config)
 
 (cli/setup [])
 
