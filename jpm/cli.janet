@@ -17,7 +17,9 @@
 
 (def- argpeg
   (peg/compile
-    '(* "--" '(some (if-not "=" 1)) (+ (* "=" '(any 1)) -1))))
+    '(+
+      (* "--" '(some (if-not "=" 1)) (+ (* "=" '(any 1)) -1))
+      (* '"-" (some '(range "az" "AZ"))))))
 
 (defn setup
   ``Load configuration from the command line, environment variables, and
@@ -42,14 +44,19 @@
       (if-let [m (peg/match argpeg a)]
         (do
           (def key (keyword (get m 0)))
-          (def value-parser (get config-parsers key))
-          (unless value-parser
-            (error (string "unknown cli option " key)))
-          (if (= 2 (length m))
+          (if (= key :-) # short args
+            (for i 1 (length m)
+              (setdyn (get shorthand-mapping (get m i)) true))
             (do
-              (def v (value-parser key (get m 1)))
-              (setdyn key v))
-            (setdyn key true)))
+              # logn args
+              (def value-parser (get config-parsers key))
+              (unless value-parser
+                (error (string "unknown cli option " key)))
+              (if (= 2 (length m))
+                (do
+                  (def v (value-parser key (get m 1)))
+                  (setdyn key v))
+                (setdyn key true)))))
         (array/push cmdbuf a))))
   # Load the configuration file, or use default config.
   (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]
@@ -58,6 +65,10 @@
 
   # Make configuration a bit easier - modpath is optional and falls back to syspath
   (if (= nil (dyn :modpath)) (setdyn :modpath (dyn :syspath)))
+
+  # Local development - if --local flag is used, do a local installation to a tree.
+  (if (dyn :local)
+    (commands/enable-local-mode))
 
   (setdyn :jpm-env _env)
   (setdyn :janet (dyn :executable))

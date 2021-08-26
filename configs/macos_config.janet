@@ -23,6 +23,7 @@
    :ldflags @[]
    :lflags @[]
    :libpath (string prefix "/lib")
+   :local false
    :manpath (string prefix "/share/man/man1")
    :modext ".so"
    :modpath (string prefix "/lib/janet")

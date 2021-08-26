@@ -19,7 +19,7 @@ we are trying to keep most functionality a drop-in replacement where it makes se
 To replace the original `jpm` tool with this port (or just install this tool in the first place), run
 
 ```
-$ [sudo] janet cli.janet install
+$ [sudo] janet jpm/cli.janet install
 ```
 
 There are also several example config files in the `configs` directory, and you can use the environment
@@ -29,5 +29,5 @@ customized config file before installing. To select a configuration file to use 
 when installing, use the `--bootstrap-config=` command line option.
 
 ```
-$ [sudo] janet cli.janet install --bootstrap-config=configs/msvc_config.janet
+$ [sudo] janet jpm/cli.janet install --bootstrap-config=configs/msvc_config.janet
 ```

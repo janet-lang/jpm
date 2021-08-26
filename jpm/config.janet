@@ -176,6 +176,14 @@
   (setwhen :libpath "JANET_LIBPATH")
   (setwhen :binpath "JANET_BINPATH"))
 
+(def shorthand-mapping
+  "Map some single characters to long options."
+  {"v" :verbose
+   "l" :local
+   "s" :silent
+   "n" :nocolor
+   "t" :test})
+
 # All jpm settings.
 (defdyn :binpath :string "The directory to install executable binaries and scripts to")
 (defdyn :config-file :string-opt "A config file to load to load settings from")
@@ -220,3 +228,4 @@
 (defdyn :nocolor :boolean "Disables color in the debug repl")
 (defdyn :test :boolean "Enable testing when installing.")
 (defdyn :bootstrap-config :string-opt "When bootstrapping, choose a configuration file to use to override the default configuration file.")
+(defdyn :local :boolean "Shortcut to indicate you want to install packages/run jpm commands in the context of a project local tree.")

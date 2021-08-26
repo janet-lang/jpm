@@ -17,6 +17,7 @@
  :janet-lflags @[]
  :ldflags @[]
  :lflags @["/nologo"]
+ :local false
  :modext ".dll"
  :nocolor false
  :optimize 2

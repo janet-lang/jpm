@@ -21,6 +21,9 @@
     some environments they may require super user privileges.
     Other project-level commands need to have a ./project.janet file in the current directory.
 
+    To install/manage packages in a local subtree, use the --local flag (or -l) to install packages
+    to ./jpm_tree. This should generally not require elevated privileges.
+
     Unprivileged global subcommands:
       help : show this help text
       show-paths : prints the paths that will be used to install things.
@@ -196,6 +199,19 @@
     (getline (string "jpm[" (or name "repl") "]:" line ":" (parser/state p :delimiters) "> ") buf env))
   (repl getchunk nil env))
 
+(defn enable-local-mode
+  "Modify the config to enable local development. Creates a local tree if one does not exist in ./jpm_tree/"
+  []
+  (setdyn :local true)
+  (def bp (string (os/cwd) "/jpm_tree/bin"))
+  (def mp (string (os/cwd) "/jpm_tree/lib"))
+  (os/mkdir "jpm_tree")
+  (os/mkdir "jpm_tree/bin")
+  (os/mkdir "jpm_tree/lib")
+  (setdyn :manpath false)
+  (setdyn :binpath bp)
+  (setdyn :modpath mp))
+
 (def subcommands
   {"build" build
    "clean" clean
@@ -219,5 +235,3 @@
    "load-lockfile" load-lockfile
    "quickbin" quickbin
    "save-config" save-config})
-
-
