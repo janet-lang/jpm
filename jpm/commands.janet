@@ -114,8 +114,8 @@
 
 (defn deps
   []
-  (import-rules "./project.janet" true)
-  (def meta (dyn :project))
+  (def env (import-rules "./project.janet" true))
+  (def meta (get env :project))
   (if-let [deps (meta :dependencies)]
     (each dep deps
       (bundle-install dep))

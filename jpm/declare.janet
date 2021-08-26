@@ -247,21 +247,31 @@
     (install-rule page mp)))
 
 (defn run-tests
-  "Run tests on a project in the current directory."
-  [&opt root-directory]
+  "Run tests on a project in the current directory. The tests will
+  be run in the environment dictated by (dyn :modpath)."
+  [&opt root-directory build-directory]
+  (def monkey-patch
+    (string
+      `(array/push module/paths "./build/:all.`
+      (dyn:modext)
+      `" :native |(or (= ($ 0) (chr "/")) (= ($ 0) (chr "."))))`))
+  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
   (defn dodir
-    [dir]
+    [dir bdir]
     (each sub (sort (os/dir dir))
       (def ndir (string dir "/" sub))
       (case (os/stat ndir :mode)
         :file (when (string/has-suffix? ".janet" ndir)
                 (print "running " ndir " ...")
                 (flush)
-                (def result (os/execute [(dyn:janet) ndir] :p))
+                (def result (os/execute 
+                              [(dyn:janet) "-e" monkey-patch ndir]
+                              :ep 
+                              environ))
                 (when (not= 0 result)
                   (errorf "non-zero exit code in %s: %d" ndir result)))
-        :directory (dodir ndir))))
-  (dodir (or root-directory "test"))
+        :directory (dodir ndir bdir))))
+  (dodir (or root-directory "test") (or build-directory "build"))
   (print "All tests passed.")
   (flush))
 
