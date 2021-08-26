@@ -252,9 +252,10 @@
   [&opt root-directory build-directory]
   (def monkey-patch
     (string
-      `(array/push module/paths "./build/:all.`
+      `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
+      (array/push module/paths ["./build/:all:`
       (dyn:modext)
-      `" :native |(or (= ($ 0) (chr "/")) (= ($ 0) (chr "."))))`))
+      `" :native check-is-dep])`))
   (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
   (defn dodir
     [dir bdir]
