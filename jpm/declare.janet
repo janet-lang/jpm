@@ -203,17 +203,17 @@
       (def path (string binpath "/" name))
       (array/push (dyn :installed-files) path)
       (task "install" []
-                (def contents
-                  (with [f (file/open main)]
-                    (def first-line (:read f :line))
-                    (def second-line (string/format "(put root-env :syspath %v)\n" syspath))
-                    (def rest (:read f :all))
-                    (string (if auto-shebang
-                              (string "#!" (dyn:binpath) "/janet\n"))
-                            first-line (if hardcode second-line) rest)))
-                (create-dirs path)
-                (spit path contents)
-                (unless (= :windows (os/which)) (shell "chmod" "+x" path))))
+            (def contents
+              (with [f (file/open main)]
+                (def first-line (:read f :line))
+                (def second-line (string/format "(put root-env :syspath %v)\n" syspath))
+                (def rest (:read f :all))
+                (string (if auto-shebang
+                          (string "#!" (dyn:binpath) "/janet\n"))
+                        first-line (if hardcode second-line) rest)))
+            (create-dirs path)
+            (spit path contents)
+            (unless (= :windows (os/which)) (shell "chmod" "+x" path))))
     (install-rule main binpath))
   # Create a dud batch file when on windows.
   (when (dyn:use-batch-shell)

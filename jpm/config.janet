@@ -128,7 +128,7 @@
   (def buf @"")
   (buffer/format buf "%j" d) # ensure no funny stuff gets written to config file
   (buffer/clear buf)
-  (def output (buffer/format buf "%p" d))
+  (def output (buffer/format buf "%.99m" d))
   (spit path output))
 
 (defn load-config
@@ -227,5 +227,4 @@
 (defdyn :workers :int-opt "The number of parallel workers to build with")
 (defdyn :nocolor :boolean "Disables color in the debug repl")
 (defdyn :test :boolean "Enable testing when installing.")
-(defdyn :bootstrap-config :string-opt "When bootstrapping, choose a configuration file to use to override the default configuration file.")
-(defdyn :local :boolean "Shortcut to indicate you want to install packages/run jpm commands in the context of a project local tree.")
+(defdyn :local :boolean "Switcht to use a local tree ./jpm_tree instead of the config specified tree.")

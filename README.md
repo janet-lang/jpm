@@ -14,21 +14,20 @@ such as remote tarballs, zipfiles, or local directories, and more.
 This is a WIP and functionality may not be up-to-date/compatible with the normal `jpm` script, although
 we are trying to keep most functionality a drop-in replacement where it makes sense.
 
-## Bootstrapping
+## Self Installation (Bootstrapping)
 
-To replace the original `jpm` tool with this port (or just install this tool in the first place),
 clone this repo, and from its directory, run
 
 ```
-$ [sudo] janet jpm/cli.janet install
+$ [sudo] janet bootstrap.janet
 ```
 
 There are also several example config files in the `configs` directory, and you can use the environment
 variable `JANET_JPM_CONFIG` to use a configuration file. The config files can be either `janet` or `jdn`
 files. To override/set the default configuration, replace the contents of default-config.janet with a
 customized config file before installing. To select a configuration file to use to override the default
-when installing, use the `--bootstrap-config=` command line option.
+when installing, pass in a config file argument to thte `bootstrap.janet` script.
 
 ```
-$ [sudo] janet jpm/cli.janet install --bootstrap-config=configs/msvc_config.janet
+$ [sudo] janet bootstrap.janet configs/msvc_config.janet
 ```
