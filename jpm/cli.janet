@@ -59,8 +59,10 @@
   (if (= nil (dyn :modpath)) (setdyn :modpath (dyn :syspath)))
 
   # Local development - if --local flag is used, do a local installation to a tree.
-  (if (dyn :local)
-    (commands/enable-local-mode))
+  # Same for --tree=
+  (cond
+    (dyn :local) (commands/enable-local-mode)
+    (dyn :tree) (commands/set-tree (dyn :tree)))
 
   (setdyn :janet (dyn :executable))
   cmdbuf)

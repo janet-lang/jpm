@@ -204,18 +204,24 @@
     (getline (string "jpm[" (or name "repl") "]:" line ":" (parser/state p :delimiters) "> ") buf env))
   (repl getchunk nil env))
 
+(defn set-tree
+  "Set the module tree for installing dependencies. This just sets the modpath
+  binpath and unsets the manpath. Also creates the tree if it doesn't exist."
+  [tree]
+  (def abs-tree (abspath tree))
+  (def tree-bin (string abs-tree "/bin"))
+  (def tree-lib (string abs-tree "/lib"))
+  (os/mkdir abs-tree)
+  (os/mkdir tree-bin)
+  (os/mkdir tree-lib)
+  (setdyn :manpath false)
+  (setdyn :binpath tree-bin)
+  (setdyn :modpath tree-lib))
+
 (defn enable-local-mode
   "Modify the config to enable local development. Creates a local tree if one does not exist in ./jpm_tree/"
   []
-  (setdyn :local true)
-  (def bp (string (os/cwd) "/jpm_tree/bin"))
-  (def mp (string (os/cwd) "/jpm_tree/lib"))
-  (os/mkdir "jpm_tree")
-  (os/mkdir "jpm_tree/bin")
-  (os/mkdir "jpm_tree/lib")
-  (setdyn :manpath false)
-  (setdyn :binpath bp)
-  (setdyn :modpath mp))
+  (set-tree "jpm_tree"))
 
 (def subcommands
   {"build" build

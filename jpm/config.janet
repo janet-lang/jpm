@@ -227,4 +227,5 @@
 (defdyn :workers :int-opt "The number of parallel workers to build with")
 (defdyn :nocolor :boolean "Disables color in the debug repl")
 (defdyn :test :boolean "Enable testing when installing.")
-(defdyn :local :boolean "Switcht to use a local tree ./jpm_tree instead of the config specified tree.")
+(defdyn :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
+(defdyn :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
