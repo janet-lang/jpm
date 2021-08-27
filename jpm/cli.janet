@@ -17,8 +17,9 @@
   configuration files. Returns array of non-configuration arguments as well.
   Config settings are prioritized as follows:
      1. Commmand line settings
-     2. Environment variables
-     3. Config file settings (default-config if non specified)
+     2. The value of `(dyn :jpm-config)`
+     3. Environment variables
+     4. Config file settings (default-config if non specified)
   ``
   [args]
   (read-env-variables)
@@ -53,9 +54,11 @@
           (array/push cmdbuf a)))))
 
   # Load the configuration file, or use default config.
-  (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]
-    (load-config-file cf false)
-    (load-config default-config/config false))
+  (if-let [cd (dyn :jpm-config)]
+    (load-config cd true)
+    (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]
+      (load-config-file cf false)
+      (load-config default-config/config false)))
 
   # Make configuration a bit easier - modpath is optional and falls back to syspath
   (if (= nil (dyn :modpath)) (setdyn :modpath (dyn :syspath)))

@@ -83,6 +83,13 @@
   []
   (os/open (if (= :windows (os/which)) "NUL" "/dev/null") :rw))
 
+(defn- patch-path
+  "Add the bin-path to the regular path"
+  [path]
+  (if-let [bp (dyn:binpath)]
+    (string bp (if (dyn:use-batch-shell) ";" ":") path))
+    path)
+
 (defn shell
   "Do a shell command"
   [& args]
@@ -90,7 +97,8 @@
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
-  (def env (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  (def env (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)
+                                     "PATH" (patch-path (os/getenv "PATH"))}))
   (if (dyn :silent)
     (with [dn (devnull)]
       (put env :out dn)
