@@ -1,4 +1,4 @@
-(def prefix (or (os/getenv "JANET_PREFIX") "/usr/local"))
+(def prefix "/usr/local")
 
 (def config
   {:ar "ar"
