@@ -208,15 +208,18 @@
 
 (defn set-tree
   "Set the module tree for installing dependencies. This just sets the modpath
-  binpath and unsets the manpath. Also creates the tree if it doesn't exist."
+  binpath and manpath. Also creates the tree if it doesn't exist. However, still
+  uses the system libraries and headers for janet."
   [tree]
   (def abs-tree (abspath tree))
   (def tree-bin (string abs-tree "/bin"))
   (def tree-lib (string abs-tree "/lib"))
+  (def tree-man (string abs-tree "/man"))
   (os/mkdir abs-tree)
   (os/mkdir tree-bin)
   (os/mkdir tree-lib)
-  (setdyn :manpath false)
+  (os/mkdir tree-man)
+  (setdyn :manpath tree-man)
   (setdyn :binpath tree-bin)
   (setdyn :modpath tree-lib))
 
