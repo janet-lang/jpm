@@ -48,7 +48,9 @@
                   (def v (value-parser key (get m 1)))
                   (setdyn key v))
                 (setdyn key true)))))
-        (array/push cmdbuf a))))
+        (do
+          (if (index-of a ["janet" "exec"]) (set flags-done true))
+          (array/push cmdbuf a)))))
 
   # Load the configuration file, or use default config.
   (if-let [cf (dyn :config-file (os/getenv "JANET_JPM_CONFIG"))]

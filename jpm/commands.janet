@@ -44,6 +44,8 @@
       load-lockfile (lockfile) : Install modules from a lockfile in a reproducible way. The
                                  default lockfile name is lockfile.jdn.
       update-pkgs : Update the current package listing from the remote git repository selected.
+      exec : Run any shell command with JANET_PATH set to the correct module tree.
+      janet : Run the Janet interpreter with JANET_PATH set to the correct module tree.
 
     Privileged project subcommands:
       deps : install dependencies for the current project.
@@ -245,4 +247,6 @@
    "make-lockfile" make-lockfile
    "load-lockfile" load-lockfile
    "quickbin" quickbin
+   "exec" shell
+   "janet" (partial shell "janet")
    "save-config" save-config})

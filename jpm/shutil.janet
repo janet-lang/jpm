@@ -90,10 +90,13 @@
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
+  (def env (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
   (if (dyn :silent)
     (with [dn (devnull)]
-      (os/execute args :px {:out dn :err dn}))
-    (os/execute args :px)))
+      (put env :out dn)
+      (put env :err dn)
+      (os/execute args :epx env))
+    (os/execute args :epx env)))
 
 (defn copy
   "Copy a file or directory recursively from one location to another."
