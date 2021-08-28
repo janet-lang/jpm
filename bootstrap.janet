@@ -12,7 +12,8 @@
   (os/execute [(dyn :executable) "jpm/cli.janet" "install"]
               :epx
               (merge-into (os/environ)
-                          {"JPM_BOOTSTRAP_CONFIG" conf})))
+                          {"JPM_BOOTSTRAP_CONFIG" conf
+                           "JANET_JPM_CONFIG" conf})))
 
 (when-let [override-config (get (dyn :args) 1)]
   (do-bootstrap override-config)
@@ -86,7 +87,7 @@
     :use-batch-shell iswin
     :verbose false})
 
-(def temp-config-path "./temp-config.jdn")
+(def temp-config-path "./temp-config.janet")
 
 # Sanity check for recursive data
 (def buf @"")

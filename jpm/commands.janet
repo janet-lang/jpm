@@ -251,5 +251,5 @@
    "load-lockfile" load-lockfile
    "quickbin" quickbin
    "exec" shell
-   "janet" (partial shell "janet")
+   "janet" (fn [& args] (shell (dyn :executable) ;args))
    "save-config" save-config})
