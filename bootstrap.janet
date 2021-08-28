@@ -27,7 +27,8 @@
 (def headerpath (os/getenv "JANET_HEADERPATH" (if-not iswin (string prefix "/include/janet"))))
 (def binpath (os/getenv "JANET_BINPATH" (if-not iswin (string prefix "/bin"))))
 (def libpath (os/getenv "JANET_LIBPATH" (if-not iswin (string prefix "/lib"))))
-(def modpath (os/getenv "JANET_MODPATH"))
+(def fix-modpath (os/getenv "JANET_STRICT_MODPATH"))
+(def modpath (os/getenv "JANET_MODPATH" (if (and (not iswin) fix-modpath) (string prefix "/lib/janet"))))
 
 (print)
 (print "Using install prefix: " prefix)

@@ -17,8 +17,17 @@
            "jpm/cgen.janet"])
 
 # Install the default configuration for bootstrapping
-(when-let [bc (os/getenv "JPM_BOOTSTRAP_CONFIG" "jpm/default-config.janet")]
-  (install-file-rule bc (string (dyn :modpath) "/jpm/default-config.janet")))
+(def confpath (string (dyn :modpath) "/jpm/default-config.janet"))
+(if-let [bc (os/getenv "JPM_BOOTSTRAP_CONFIG")]
+  (install-file-rule bc confpath)
+  # Otherwise, keep the current config
+  (do
+    (assert (os/stat confpath :mode)
+            "No existing config found, use the jpm bootstrap script to generate a config and install")
+    (def old (slurp confpath))
+    (task "install" []
+      (print "keeping old config at " confpath)
+      (spit confpath old))))
 
 (declare-manpage "jpm.1")
 

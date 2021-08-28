@@ -39,3 +39,8 @@ required headers and libraries for compiling C libraries.
 ```
 $ PREFIX=/usr sudo janet bootstrap.janet
 ```
+
+## Updating
+
+If you aleady have an installation of jpm configured, you can update `jpm` with `jpm install jpm`, which
+should automatically update to the latest jpm.`
