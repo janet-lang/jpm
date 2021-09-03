@@ -87,8 +87,8 @@
   "Add the bin-path to the regular path"
   [path]
   (if-let [bp (dyn:binpath)]
-    (string bp (if (dyn:use-batch-shell) ";" ":") path))
-    path)
+    (string bp (if (= :windows (os/which)) ";" ":") path)
+    path))
 
 (defn shell
   "Do a shell command"
