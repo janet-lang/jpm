@@ -63,13 +63,17 @@
   # Make configuration a bit easier - modpath is optional and falls back to syspath
   (if (= nil (dyn :modpath)) (setdyn :modpath (dyn :syspath)))
 
+
   # Local development - if --local flag is used, do a local installation to a tree.
   # Same for --tree=
   (cond
     (dyn :local) (commands/enable-local-mode)
     (dyn :tree) (commands/set-tree (dyn :tree)))
 
+  # Make sure loaded project files and rules execute correctly.
   (setdyn :janet (dyn :executable))
+  (put root-env :syspath (dyn:modpath))
+
   cmdbuf)
 
 (defn main

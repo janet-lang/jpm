@@ -6,19 +6,6 @@
 
 (import ./jpm/config)
 
-(defn do-bootstrap
-  [conf]
-  (print "Running jpm to self install...")
-  (os/execute [(dyn :executable) "jpm/cli.janet" "install"]
-              :epx
-              (merge-into (os/environ)
-                          {"JPM_BOOTSTRAP_CONFIG" conf
-                           "JANET_JPM_CONFIG" conf})))
-
-(when-let [override-config (get (dyn :args) 1)]
-  (do-bootstrap override-config)
-  (os/exit 1))
-
 (def hostos (os/which))
 (def iswin (= :windows hostos))
 (def prefix (os/getenv "JANET_PREFIX" (os/getenv "PREFIX" "/usr/local")))
@@ -29,6 +16,22 @@
 (def libpath (os/getenv "JANET_LIBPATH" (if-not iswin (string prefix "/lib"))))
 (def fix-modpath (os/getenv "JANET_STRICT_MODPATH"))
 (def modpath (os/getenv "JANET_MODPATH" (if (and (not iswin) fix-modpath) (string prefix "/lib/janet"))))
+
+(defn do-bootstrap
+  [conf]
+  (let [mp (or modpath (dyn :syspath))]
+    (os/mkdir mp)
+    (os/mkdir (string mp "/.manifests")))
+  (print "Running jpm to self install...")
+  (os/execute [(dyn :executable) "jpm/cli.janet" "install"]
+              :epx
+              (merge-into (os/environ)
+                          {"JPM_BOOTSTRAP_CONFIG" conf
+                           "JANET_JPM_CONFIG" conf})))
+
+(when-let [override-config (get (dyn :args) 1)]
+  (do-bootstrap override-config)
+  (os/exit 1))
 
 (print)
 (print "Using install prefix: " prefix)

@@ -45,6 +45,7 @@
   (put env 'default-lflags @{:value (dyn:lflags)})
   (put env 'default-ldflags @{:value (dyn:ldflags)})
   (put env 'default-cppflags @{:value (dyn:cppflags)})
+  (put env :syspath (dyn:modpath))
   env)
 
 (defn require-jpm
