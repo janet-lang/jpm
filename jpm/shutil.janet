@@ -97,8 +97,11 @@
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
-  (def env (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)
-                                     "PATH" (patch-path (os/getenv "PATH"))}))
+  (def environ (os/environ))
+  # Windows uses "Path"
+  (def PATH (if (in environ "Path") "Path" "PATH"))
+  (def env (merge-into environ {"JANET_PATH" (dyn:modpath)
+                                     PATH (patch-path (os/getenv PATH))}))
   (if (dyn :silent)
     (with [dn (devnull)]
       (put env :out dn)
