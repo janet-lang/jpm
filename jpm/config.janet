@@ -182,6 +182,7 @@
    "l" :local
    "s" :silent
    "n" :nocolor
+   "u" :update-pkgs
    "t" :test})
 
 # All jpm settings.
@@ -199,6 +200,7 @@
 (defdyn :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
 (defdyn :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
 (defdyn :offline :boolean "Do not download remote repositories when installing packages")
+(defdyn :update-pkgs :boolean "Update package listing before doing anything.")
 
 # Settings that probably shouldn't be set from the command line.
 (defdyn :ar :string "The archiver used to generate static C/C++ libraries")
