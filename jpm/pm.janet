@@ -118,7 +118,7 @@
             (set repo (get parts 1))
             (set tag (get parts 2)))
         (errorf "unable to parse bundle string %v" bundle))))
-  {:repo (resolve-bundle-name repo) :tag tag :type btype})
+  {:url (resolve-bundle-name repo) :tag tag :type btype})
 
 (defn download-git-bundle
   "Download a git bundle from a remote respository"
@@ -169,12 +169,12 @@
 
 (defn bundle-install
   "Install a bundle from a git repository."
-  [repo &opt no-deps]
-  (def {:repo repo
+  [bundle &opt no-deps]
+  (def {:url url
         :tag tag
         :type bundle-type}
-   (resolve-bundle repo))
-  (def bdir (download-bundle repo bundle-type tag))
+   (resolve-bundle bundle))
+  (def bdir (download-bundle url bundle-type tag))
   (def olddir (os/cwd))
   (defer (os/cd olddir)
     (os/cd bdir)
@@ -204,7 +204,7 @@
   (def mdir (find-manifest-dir))
   (each man (os/dir mdir)
     (def package (parse (slurp (string mdir "/"  man))))
-    (if (and (dictionary? package) (package :repo) (package :sha))
+    (if (and (dictionary? package) (or (package :url) (package :repo)) (package :tag))
       (array/push packages package)
       (print "Cannot add local or malformed package " mdir "/" man " to lockfile, skipping...")))
   # Put in correct order, such that a package is preceded by all of its dependencies
@@ -213,16 +213,17 @@
   (while (< (length ordered-packages) (length packages))
     (var made-progress false)
     (each p packages
-      (def {:repo r :sha s :dependencies d} p)
-      (def dep-urls (map |(if (string? $) $ ($ :repo)) d))
-      (unless (resolved r)
-        (when (all resolved dep-urls)
-          (array/push ordered-packages {:repo r :sha s})
+      (def {:url u :repo r :tag s :dependencies d :type t} p)
+      (def key (in (resolve-bundle p) :url))
+      (def dep-bundles (map |(in (resolve-bundle $) :url) d))
+      (unless (resolved key)
+        (when (all resolved dep-bundles)
+          (array/push ordered-packages {:url (or u r) :tag s :type t})
           (set made-progress true)
-          (put resolved r true))))
+          (put resolved key true))))
     (unless made-progress
       (error (string/format "could not resolve package order for: %j"
-                            (filter (complement resolved) (map |($ :repo) packages))))))
+                            (filter (complement resolved) (map |(or ($ :url) ($ :repo)) packages))))))
   # Write to file, manual format for better diffs.
   (with [f (file/open filename :w)]
     (with-dyns [:out f]
@@ -239,8 +240,13 @@
   [&opt filename]
   (default filename "lockfile.jdn")
   (def lockarray (parse (slurp filename)))
+<<<<<<< HEAD
   (each x lockarray
     (bundle-install x true)))
+=======
+  (each bundle lockarray
+    (bundle-install bundle true)))
+>>>>>>> 1598a7c6de18d762f45890ce70394c37cb3804bc
 
 (defmacro post-deps
   "Run code at the top level if jpm dependencies are installed. Build

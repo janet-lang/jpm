@@ -308,7 +308,7 @@
             (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" remote get-url origin"))]
               (put man :url (if-not (empty? x) x)))
             (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" rev-parse HEAD"))]
-              (put man :sha (if-not (empty? x) x))))
+              (put man :tag (if-not (empty? x) x))))
           :tar
           (do
             (put man :url (slurp ".bundle-tar-url")))
