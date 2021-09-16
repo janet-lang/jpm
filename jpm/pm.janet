@@ -240,13 +240,8 @@
   [&opt filename]
   (default filename "lockfile.jdn")
   (def lockarray (parse (slurp filename)))
-<<<<<<< HEAD
-  (each x lockarray
-    (bundle-install x true)))
-=======
   (each bundle lockarray
     (bundle-install bundle true)))
->>>>>>> 1598a7c6de18d762f45890ce70394c37cb3804bc
 
 (defmacro post-deps
   "Run code at the top level if jpm dependencies are installed. Build
