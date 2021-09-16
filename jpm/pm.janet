@@ -103,12 +103,12 @@
   [bundle]
   (var repo nil)
   (var tag nil)
-  (var btype nil)
+  (var btype :git)
   (if (dictionary? bundle)
     (do
-      (set repo (get bundle :repo))
-      (set tag (get bundle :tag))
-      (set btype (get bundle :type)))
+      (set repo (or (get bundle :url) (get bundle :repo)))
+      (set tag (or (get bundle :tag) (get bundle :sha) (get bundle :commit) (get bundle :ref)))
+      (set btype (get bundle :type :git)))
     (let [parts (string/split "::" bundle)]
       (case (length parts)
         1 (set repo (get parts 0))
@@ -135,8 +135,7 @@
       (print "cloning repository " url " to " bundle-dir)
       (git "clone" url bundle-dir)))
   (unless (or (dyn :offline) fresh)
-    (git "-C" bundle-dir gd wt "pull" "origin" tag "--ff-only"))
-  (git "-C" bundle-dir gd wt "reset" "--hard" tag)
+    (git "-C" bundle-dir gd wt "pull" "--ff-only"))
   (unless (dyn :offline)
     (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive")))
 
@@ -157,12 +156,10 @@
 (defn download-bundle
   "Donwload the package source (using git) to the local cache. Return the
   path to the downloaded or cached soure code."
-  [url &opt bundle-type tag]
-  (default bundle-type :git)
-  (default tag "master")
+  [url bundle-type &opt tag]
   (def cache (find-cache))
   (os/mkdir cache)
-  (def id (filepath-replace url))
+  (def id (filepath-replace (string bundle-type "_" tag "_" url)))
   (def bundle-dir (string cache "/" id))
   (case bundle-type
     :git (download-git-bundle bundle-dir url tag)
@@ -242,8 +239,8 @@
   [&opt filename]
   (default filename "lockfile.jdn")
   (def lockarray (parse (slurp filename)))
-  (each {:repo url :sha sha :type bundle-type} lockarray
-    (bundle-install {:repo url :tag sha :type bundle-type} true)))
+  (each x lockarray
+    (bundle-install x true)))
 
 (defmacro post-deps
   "Run code at the top level if jpm dependencies are installed. Build
