@@ -14,7 +14,7 @@
   "Get the path to the directory containing manifests for installed
   packages."
   []
-  (string (dyn:modpath) "/.manifests"))
+  (string (dyn :dest-dir "") (dyn:modpath) "/.manifests"))
 
 (defn find-manifest
   "Get the full path of a manifest file given a package name."
@@ -25,7 +25,7 @@
   "Return the path to the global cache."
   []
   (def path (dyn:modpath))
-  (string path "/.cache"))
+  (string (dyn :dest-dir "") path "/.cache"))
 
 (defn rm
   "Remove a directory and all sub directories."

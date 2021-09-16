@@ -13,16 +13,18 @@
   (def name (last (peg/match path-splitter src)))
   (def path (string destdir "/" name))
   (array/push (dyn :installed-files) path)
+  (def dir (string (dyn :dest-dir "") destdir))
   (task "install" []
-        (os/mkdir destdir)
-        (copy src destdir)))
+        (os/mkdir dir)
+        (copy src dir)))
 
 (defn install-file-rule
   "Add install and uninstall rule for moving file from src into destdir."
   [src dest]
   (array/push (dyn :installed-files) dest)
+  (def dest1  (string (dyn :dest-dir "") dest))
   (task "install" []
-        (copyfile src dest)))
+        (copyfile src dest1)))
 
 (defn uninstall
   "Uninstall bundle named name"
@@ -31,8 +33,9 @@
   (when-with [f (file/open manifest)]
     (def man (parse (:read f :all)))
     (each path (get man :paths [])
-      (print "removing " path)
-      (rm path))
+      (def path1 (string (dyn :dest-dir "") path))
+      (print "removing " path1)
+      (rm path1))
     (print "removing manifest " manifest)
     (:close f) # I hate windows
     (rm manifest)
@@ -211,9 +214,10 @@
                 (string (if auto-shebang
                           (string "#!" (dyn:binpath) "/janet\n"))
                         first-line (if hardcode second-line) rest)))
-            (create-dirs path)
-            (spit path contents)
-            (unless (= :windows (os/which)) (shell "chmod" "+x" path))))
+            (def destpath (string (dyn :dest-dir "") path))
+            (create-dirs destpath)
+            (spit destpath contents)
+            (unless (= :windows (os/which)) (shell "chmod" "+x" destpath))))
     (install-rule main binpath))
   # Create a dud batch file when on windows.
   (when (dyn:use-batch-shell)
@@ -223,7 +227,7 @@
     (def newname (string binpath "/" name ".bat"))
     (array/push (dyn :installed-files) newname)
     (task "install" []
-              (spit newname bat))))
+          (spit (string (dyn :dest-dir "") newname) bat))))
 
 (defn declare-archive
   "Build a janet archive. This is a file that bundles together many janet

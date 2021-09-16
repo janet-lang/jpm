@@ -5,6 +5,7 @@
 # for installation and then install jpm
 
 (import ./jpm/config)
+(import ./jpm/shutil)
 
 (def hostos (os/which))
 (def iswin (= :windows hostos))
@@ -16,14 +17,18 @@
 (def libpath (os/getenv "JANET_LIBPATH" (if-not iswin (string prefix "/lib"))))
 (def fix-modpath (os/getenv "JANET_STRICT_MODPATH"))
 (def modpath (os/getenv "JANET_MODPATH" (if (and (not iswin) fix-modpath) (string prefix "/lib/janet"))))
+(def destdir (os/getenv "DESTDIR"))
 
 (defn do-bootstrap
   [conf]
   (let [mp (or modpath (dyn :syspath))]
-    (os/mkdir mp)
-    (os/mkdir (string mp "/.manifests")))
+    (shutil/create-dirs (string (or destdir "") mp "/.manifests"))
+    (when manpath (shutil/create-dirs (string (or destdir "") manpath)))
+    (when binpath (shutil/create-dirs (string (or destdir "") binpath)))
+    (when libpath (shutil/create-dirs (string (or destdir "") libpath)))
+    (when headerpath (shutil/create-dirs (string (or destdir "") headerpath))))
   (print "Running jpm to self install...")
-  (os/execute [(dyn :executable) "jpm/cli.janet" "install"]
+  (os/execute [(dyn :executable) "jpm/cli.janet" "install" ;(if destdir [(string "--dest-dir=" destdir)] [])]
               :epx
               (merge-into (os/environ)
                           {"JPM_BOOTSTRAP_CONFIG" conf
@@ -34,6 +39,7 @@
   (os/exit 1))
 
 (print)
+(print "destdir: " destdir)
 (print "Using install prefix: " prefix)
 (print "binpath: " binpath)
 (print "libpath: " libpath)

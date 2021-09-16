@@ -231,3 +231,4 @@
 (defdyn :test :boolean "Enable testing when installing.")
 (defdyn :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
 (defdyn :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
+(defdyn :dest-dir :string-opt "Prefix to add to installed files. Useful for bootstrapping.")
