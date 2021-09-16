@@ -11,9 +11,6 @@ CLI options. Other improvements are planned such as parallel dependency download
 out of the box support for non-C toolchains and pkg-config, installation from sources besides git
 such as remote tarballs, zipfiles, or local directories, and more.
 
-This is a WIP and functionality may not be up-to-date/compatible with the normal `jpm` script, although
-we are trying to keep most functionality a drop-in replacement where it makes sense.
-
 ## Self Installation (Bootstrapping)
 
 clone this repo, and from its directory, run

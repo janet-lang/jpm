@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## 0.0.1 - ???
+## 0.0.1 - 2021-09-15
 - Moved project from Janet source to separate repository.
 - Add tarball support, parallel builds, and more.
 - Change configuration process to use a config file at install time.
