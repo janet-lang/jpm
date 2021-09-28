@@ -261,6 +261,7 @@
       (dyn:modext)
       `" :native check-is-dep])`))
   (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  (var errors-found 0)
   (defn dodir
     [dir bdir]
     (each sub (sort (os/dir dir))
@@ -274,10 +275,15 @@
                               :ep 
                               environ))
                 (when (not= 0 result)
-                  (errorf "non-zero exit code in %s: %d" ndir result)))
+                  (++ errors-found)
+                  (eprintf "non-zero exit code in %s: %d" ndir result)))
         :directory (dodir ndir bdir))))
   (dodir (or root-directory "test") (or build-directory "build"))
-  (print "All tests passed.")
+  (if (zero? errors-found)
+    (print "All tests passed.")
+    (do
+      (printf "Failing test scripts: %d" errors-found)
+      (os/exit 1)))
   (flush))
 
 (defn declare-project
@@ -309,9 +315,9 @@
         (case bundle-type
           :git
           (do
-            (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" remote get-url origin"))]
+            (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
               (put man :url (if-not (empty? x) x)))
-            (if-let [x (pslurp (string "\"" (dyn:gitpath) "\" rev-parse HEAD"))]
+            (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
               (put man :tag (if-not (empty? x) x))))
           :tar
           (do

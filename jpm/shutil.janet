@@ -62,11 +62,6 @@
   (print "clearing manifests " manifest "...")
   (rimraf manifest))
 
-(defn pslurp
-  "Like slurp, but with file/popen instead file/open. Also trims output"
-  [cmd]
-  (string/trim (with [f (file/popen cmd)] (:read f :all))))
-
 (def path-splitter
   "split paths on / and \\."
   (peg/compile ~(any (* '(any (if-not (set `\/`) 1)) (+ (set `\/`) -1)))))
@@ -90,6 +85,14 @@
     (string bp (if (= :windows (os/which)) ";" ":") path)
     path))
 
+(defn- patch-env
+  []
+  (def environ (os/environ))
+  # Windows uses "Path"
+  (def PATH (if (in environ "Path") "Path" "PATH"))
+  (def env (merge-into environ {"JANET_PATH" (dyn:modpath)
+                                PATH (patch-path (os/getenv PATH))})))
+
 (defn shell
   "Do a shell command"
   [& args]
@@ -97,17 +100,28 @@
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
-  (def environ (os/environ))
-  # Windows uses "Path"
-  (def PATH (if (in environ "Path") "Path" "PATH"))
-  (def env (merge-into environ {"JANET_PATH" (dyn:modpath)
-                                     PATH (patch-path (os/getenv PATH))}))
+  (def env (patch-env))
   (if (dyn :silent)
     (with [dn (devnull)]
       (put env :out dn)
       (put env :err dn)
       (os/execute args :epx env))
     (os/execute args :epx env)))
+
+(defn exec-slurp
+  "Read stdout of subprocess and return it in a buffer."
+  [& args]
+  (when (dyn :verbose)
+    (flush)
+    (print ;(interpose " " args)))
+  (def env (patch-env))
+  (put env :out :pipe)
+  (def proc (os/spawn args :epx env))
+  (def out (get proc :out))
+  (def buf @"")
+  (ev/spawn (:read out :all buf))
+  (:wait proc)
+  buf)
 
 (defn copy
   "Copy a file or directory recursively from one location to another."
