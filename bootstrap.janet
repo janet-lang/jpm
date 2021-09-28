@@ -36,7 +36,7 @@
 
 (when-let [override-config (get (dyn :args) 1)]
   (do-bootstrap override-config)
-  (os/exit 1))
+  (os/exit 0))
 
 (print)
 (print "destdir: " destdir)
