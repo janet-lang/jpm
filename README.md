@@ -34,7 +34,7 @@ Generally, you will want to install to the same directory that Janet was install
 required headers and libraries for compiling C libraries.
 
 ```
-$ PREFIX=/usr sudo janet bootstrap.janet
+$ sudo PREFIX=/usr janet bootstrap.janet
 ```
 
 ## Updating
