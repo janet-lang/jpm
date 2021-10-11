@@ -109,7 +109,7 @@
     (os/execute args :epx env)))
 
 (defn exec-slurp
-  "Read stdout of subprocess and return it in a buffer."
+  "Read stdout of subprocess and return it trimmed in a string."
   [& args]
   (when (dyn :verbose)
     (flush)
@@ -121,7 +121,7 @@
   (def buf @"")
   (ev/spawn (:read out :all buf))
   (:wait proc)
-  buf)
+  (string/trim buf))
 
 (defn copy
   "Copy a file or directory recursively from one location to another."
