@@ -121,7 +121,7 @@
   (def buf @"")
   (ev/spawn (:read out :all buf))
   (:wait proc)
-  (string/trim buf))
+  (string/trimr buf))
 
 (defn copy
   "Copy a file or directory recursively from one location to another."
