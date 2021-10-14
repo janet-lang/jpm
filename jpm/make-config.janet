@@ -31,7 +31,6 @@
       (when libpath (shutil/create-dirs (string destdir libpath)))
       (when headerpath (shutil/create-dirs (string destdir headerpath)))))
 
-  (print)
   (when destdir (print "destdir: " destdir))
   (print "Using install prefix: " prefix)
   (print "binpath: " binpath)
@@ -40,7 +39,6 @@
   (print "headerpath: " headerpath)
   (print "modpath: " (or modpath "(default to JANET_PATH at runtime)"))
   (print "Setting package listing: " pkglist)
-  (print)
 
   # Write the config to a temporary file if not provided
   (def config

@@ -10,7 +10,6 @@
 (def destdir (os/getenv "DESTDIR"))
 (defn do-bootstrap
   [conf]
-  (print "destdir: " destdir)
   (print "Running jpm to self install...")
   (os/execute [(dyn :executable) "jpm/cli.janet" "install" ;(if destdir [(string "--dest-dir=" destdir)] [])]
               :epx
