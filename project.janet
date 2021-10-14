@@ -11,23 +11,11 @@
            "jpm/dagbuild.janet"
            "jpm/declare.janet"
            "jpm/init.janet"
+           "jpm/make-config.janet"
            "jpm/pm.janet"
            "jpm/rules.janet"
            "jpm/shutil.janet"
            "jpm/cgen.janet"])
-
-# Install the default configuration for bootstrapping
-(def confpath (string (dyn :modpath) "/jpm/default-config.janet"))
-(if-let [bc (os/getenv "JPM_BOOTSTRAP_CONFIG")]
-  (install-file-rule bc confpath)
-  # Otherwise, keep the current config
-  (do
-    (assert (os/stat confpath :mode)
-            "No existing config found, use the jpm bootstrap script to generate a config and install")
-    (def old (slurp confpath))
-    (task "install" []
-      (print "keeping old config at " confpath)
-      (spit confpath old))))
 
 (declare-manpage "jpm.1")
 
@@ -35,3 +23,28 @@
   :main "jpm/jpm"
   :hardcode-syspath true
   :is-janet true)
+
+# Install the default configuration for bootstrapping
+(def confpath (string (dyn :modpath) "/jpm/default-config.janet"))
+
+(if-let [bc (os/getenv "JPM_BOOTSTRAP_CONFIG")]
+  (install-file-rule bc confpath)
+
+  # Otherwise, keep the current config or generate a new one
+  (do
+    (if (os/stat confpath :mode)
+
+      # Generate new config
+      (do
+        (print "no existing config found, generating a default...")
+        (def module (require (string (comptime (dyn :current-file)) "/jpm/make-config")))
+        (def make-config/detect (-> module (get 'detect) :value))
+        (task "install" []
+            (spit confpath (make-config/detect))))
+
+      # Keep old config
+      (do
+        (def old (slurp confpath))
+        (task "install" []
+              (print "keeping old config at " confpath)
+              (spit confpath old))))))

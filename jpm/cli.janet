@@ -80,10 +80,9 @@
 
   cmdbuf)
 
-(defn main
-  "Script entry."
-  [& argv]
-  (def args (tuple/slice argv 1))
+(defn run
+  "Run CLI commands."
+  [& args]
   (def cmdbuf (setup args))
   (if (empty? cmdbuf)
     (commands/help)
@@ -92,3 +91,8 @@
         (do
           (print "invalid command " (first cmdbuf))
           (commands/help)))))
+
+(defn main
+  "Script entry."
+  [& argv]
+  (run ;(tuple/slice argv 1)))
