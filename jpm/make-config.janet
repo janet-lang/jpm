@@ -4,7 +4,7 @@
 
 (import ./shutil)
 
-(defn detect
+(defn generate-config
   "Make a pretty good configuration file for the current target. Returns a buffer with config source contents.
   If `destdir` is given, will generate the folders needed to create a jpm tree." 
   [&opt destdir]

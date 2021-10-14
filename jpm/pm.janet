@@ -18,6 +18,7 @@
 (def- mod-cc (require "./cc"))
 (def- mod-cgen (require "./cgen"))
 (def- mod-declare (require "./declare"))
+(def- mod-make-config (require "./make-config"))
 (def- mod-pm (curenv))
 
 (defn make-jpm-env
@@ -30,6 +31,7 @@
      mod-cc
      mod-cgen
      mod-pm
+     mod-make-config
      (or base-env {})])
   (def env (make-env))
   (loop [e :in envs-to-add

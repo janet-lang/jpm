@@ -37,10 +37,8 @@
       # Generate new config
       (do
         (print "no existing config found, generating a default...")
-        (def module (require (string (comptime (dyn :current-file)) "/jpm/make-config")))
-        (def make-config/detect (-> module (get 'detect) :value))
         (task "install" []
-            (spit confpath (make-config/detect))))
+            (spit confpath (generate-config))))
 
       # Keep old config
       (do

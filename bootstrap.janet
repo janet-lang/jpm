@@ -23,6 +23,6 @@
   (os/exit 0))
 
 (def temp-config-path "./temp-config.janet")
-(spit temp-config-path (make-config/detect (or destdir "")))
+(spit temp-config-path (make-config/generate-config (or destdir "")))
 (do-bootstrap temp-config-path)
 (os/rm temp-config-path)
