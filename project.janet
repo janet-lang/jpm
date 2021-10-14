@@ -34,15 +34,15 @@
   (do
     (if (os/stat confpath :mode)
 
-      # Generate new config
-      (do
-        (print "no existing config found, generating a default...")
-        (task "install" []
-            (spit confpath (generate-config))))
-
       # Keep old config
       (do
         (def old (slurp confpath))
         (task "install" []
               (print "keeping old config at " confpath)
-              (spit confpath old))))))
+              (spit confpath old)))
+
+      # Generate new config
+      (do
+        (print "no existing config found, generating a default...")
+        (task "install" []
+            (spit confpath (generate-config)))))))
