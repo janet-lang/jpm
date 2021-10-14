@@ -43,6 +43,7 @@
 
       # Generate new config
       (do
-        (print "no existing config found, generating a default...")
         (task "install" []
-            (spit confpath (generate-config)))))))
+            (print "no existing config found, generating a default...")
+            (spit confpath (generate-config))
+            (print "created config file at " confpath))))))
