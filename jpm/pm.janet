@@ -135,7 +135,9 @@
     (when (os/mkdir bundle-dir)
       (set fresh true)
       (print "cloning repository " url " to " bundle-dir)
-      (git "clone" url bundle-dir)))
+      (if tag
+        (git "clone" url bundle-dir "--single-branch" "-b" tag)
+        (git "clone" url bundle-dir "--single-branch"))))
   (unless (or (dyn :offline) fresh)
     (git "-C" bundle-dir gd wt "pull" "--ff-only"))
   (unless (dyn :offline)
