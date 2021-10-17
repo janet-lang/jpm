@@ -270,9 +270,9 @@
         :file (when (string/has-suffix? ".janet" ndir)
                 (print "running " ndir " ...")
                 (flush)
-                (def result (os/execute 
+                (def result (os/execute
                               [(dyn:janet) "-e" monkey-patch ndir]
-                              :ep 
+                              :ep
                               environ))
                 (when (not= 0 result)
                   (++ errors-found)
@@ -315,6 +315,8 @@
         (case bundle-type
           :git
           (do
+            (if-let [shallow (dyn :shallow)]
+              (put man :shallow shallow))
             (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
               (put man :url (if-not (empty? x) x)))
             (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
