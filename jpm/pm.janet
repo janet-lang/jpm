@@ -208,7 +208,7 @@
   (def mdir (find-manifest-dir))
   (each man (os/dir mdir)
     (def package (parse (slurp (string mdir "/"  man))))
-    (if (and (dictionary? package) (or (package :url) (package :repo)) (package :tag))
+    (if (and (dictionary? package) (or (package :url) (package :repo)))
       (array/push packages package)
       (print "Cannot add local or malformed package " mdir "/" man " to lockfile, skipping...")))
   # Put in correct order, such that a package is preceded by all of its dependencies
