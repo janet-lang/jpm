@@ -1,5 +1,5 @@
 ###
-### Utilties for running shell-like commands
+### Utilities for running shell-like commands
 ###
 
 (use ./config)
@@ -8,13 +8,13 @@
   "Check if we should assume a DOS-like shell or default
   to posix shell."
   []
-  (dyn:use-batch-shell))
+  (dyn :use-batch-shell))
 
 (defn find-manifest-dir
   "Get the path to the directory containing manifests for installed
   packages."
   []
-  (string (dyn :dest-dir "") (dyn:modpath) "/.manifests"))
+  (string (dyn :dest-dir "") (dyn :modpath) "/.manifests"))
 
 (defn find-manifest
   "Get the full path of a manifest file given a package name."
@@ -24,7 +24,7 @@
 (defn find-cache
   "Return the path to the global cache."
   []
-  (def path (dyn:modpath))
+  (def path (dyn :modpath))
   (string (dyn :dest-dir "") path "/.cache"))
 
 (defn rm
@@ -81,7 +81,7 @@
 (defn- patch-path
   "Add the bin-path to the regular path"
   [path]
-  (if-let [bp (dyn:binpath)]
+  (if-let [bp (dyn :binpath)]
     (string bp (if (= :windows (os/which)) ";" ":") path)
     path))
 
@@ -90,7 +90,7 @@
   (def environ (os/environ))
   # Windows uses "Path"
   (def PATH (if (in environ "Path") "Path" "PATH"))
-  (def env (merge-into environ {"JANET_PATH" (dyn:modpath)
+  (def env (merge-into environ {"JANET_PATH" (dyn :modpath)
                                 PATH (patch-path (os/getenv PATH))})))
 
 (defn shell
