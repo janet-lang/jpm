@@ -106,11 +106,13 @@
   (var repo nil)
   (var tag nil)
   (var btype :git)
+  (var shallow false)
   (if (dictionary? bundle)
     (do
       (set repo (or (get bundle :url) (get bundle :repo)))
       (set tag (or (get bundle :tag) (get bundle :sha) (get bundle :commit) (get bundle :ref)))
-      (set btype (get bundle :type :git)))
+      (set btype (get bundle :type :git))
+      (set shallow (get bundle :shallow false)))
     (let [parts (string/split "::" bundle)]
       (case (length parts)
         1 (set repo (get parts 0))
@@ -120,13 +122,24 @@
             (set repo (get parts 1))
             (set tag (get parts 2)))
         (errorf "unable to parse bundle string %v" bundle))))
-  {:url (resolve-bundle-name repo) :tag tag :type btype})
+  {:url (resolve-bundle-name repo) :tag tag :type btype :shallow shallow})
+
+(defn update-git-bundle
+  "Fetch latest tag version from remote repository"
+  [bundle-dir tag shallow]
+  (if shallow
+    (git "-C" bundle-dir "fetch" "--depth" "1" "origin" (or tag "HEAD"))
+    (do
+      # Tag can be a hash, e.g. in lockfile. Some Git servers don't allow
+      # fetching arbitrary objects by hash. First fetch ensures, that we have
+      # all objects locally.
+      (git "-C" bundle-dir "fetch" "--tags" "origin")
+      (git "-C" bundle-dir "fetch" "origin" (or tag "HEAD"))))
+  (git "-C" bundle-dir "reset" "--hard" "FETCH_HEAD"))
 
 (defn download-git-bundle
   "Download a git bundle from a remote respository"
-  [bundle-dir url tag]
-  (def gd (string "--git-dir=" bundle-dir "/.git"))
-  (def wt "--work-tree=.")
+  [bundle-dir url tag shallow]
   (var fresh false)
   (if (dyn :offline)
     (if (not= :directory (os/stat bundle-dir :mode))
@@ -134,14 +147,13 @@
       (set fresh true))
     (when (os/mkdir bundle-dir)
       (set fresh true)
-      (print "cloning repository " url " to " bundle-dir)
-      (if tag
-        (git "clone" url bundle-dir "--single-branch" "-b" tag)
-        (git "clone" url bundle-dir "--single-branch"))))
+      (git "-c" "init.defaultBranch=master" "-C" bundle-dir "init")
+      (git "-C" bundle-dir "remote" "add" "origin" url)
+      (update-git-bundle bundle-dir tag shallow)))
   (unless (or (dyn :offline) fresh)
-    (git "-C" bundle-dir gd wt "pull" "--ff-only"))
+    (update-git-bundle bundle-dir tag shallow))
   (unless (dyn :offline)
-    (git "-C" bundle-dir gd wt "submodule" "update" "--init" "--recursive")))
+    (git "-C" bundle-dir "submodule" "update" "--init" "--recursive")))
 
 (defn download-tar-bundle
   "Download a dependency from a tape archive. The archive should have exactly one
@@ -158,15 +170,15 @@
   (tar tar-flags dest-archive "--strip-components=1" "-C" bundle-dir))
 
 (defn download-bundle
-  "Donwload the package source (using git) to the local cache. Return the
+  "Download the package source (using git) to the local cache. Return the
   path to the downloaded or cached soure code."
-  [url bundle-type &opt tag]
+  [url bundle-type &opt tag shallow]
   (def cache (find-cache))
   (os/mkdir cache)
   (def id (filepath-replace (string bundle-type "_" tag "_" url)))
   (def bundle-dir (string cache "/" id))
   (case bundle-type
-    :git (download-git-bundle bundle-dir url tag)
+    :git (download-git-bundle bundle-dir url tag shallow)
     :tar (download-tar-bundle bundle-dir url)
     (errorf "unknown bundle type %v" bundle-type))
   bundle-dir)
@@ -176,14 +188,16 @@
   [bundle &opt no-deps]
   (def {:url url
         :tag tag
-        :type bundle-type}
+        :type bundle-type
+        :shallow shallow}
    (resolve-bundle bundle))
-  (def bdir (download-bundle url bundle-type tag))
+  (def bdir (download-bundle url bundle-type tag shallow))
   (def olddir (os/cwd))
   (defer (os/cd olddir)
     (os/cd bdir)
     (with-dyns [:rules @{}
                 :bundle-type (or bundle-type :git)
+                :shallow shallow
                 :modpath (abspath (dyn:modpath))
                 :headerpath (abspath (dyn:headerpath))
                 :libpath (abspath (dyn:libpath))
@@ -217,12 +231,12 @@
   (while (< (length ordered-packages) (length packages))
     (var made-progress false)
     (each p packages
-      (def {:url u :repo r :tag s :dependencies d :type t} p)
+      (def {:url u :repo r :tag s :dependencies d :type t :shallow a} p)
       (def key (in (resolve-bundle p) :url))
       (def dep-bundles (map |(in (resolve-bundle $) :url) d))
       (unless (resolved key)
         (when (all resolved dep-bundles)
-          (array/push ordered-packages {:url (or u r) :tag s :type t})
+          (array/push ordered-packages {:url (or u r) :tag s :type t :shallow a})
           (set made-progress true)
           (put resolved key true))))
     (unless made-progress
