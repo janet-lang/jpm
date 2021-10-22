@@ -23,7 +23,7 @@ There are also several example config files in the `configs` directory, and you 
 variable `JANET_JPM_CONFIG` to use a configuration file. The config files can be either `janet` or `jdn`
 files. To override/set the default configuration, replace the contents of default-config.janet with a
 customized config file before installing. To select a configuration file to use to override the default
-when installing, pass in a config file argument to the `bootstrap.janet` script.
+when installing, pass in a config file argument to the `bootstrap.janet` script, for example:
 
 ```
 $ [sudo] janet bootstrap.janet configs/msvc_config.janet
@@ -34,10 +34,15 @@ Generally, you will want to install to the same directory that Janet was install
 required headers and libraries for compiling C libraries.
 
 ```
-$ sudo PREFIX=/usr janet bootstrap.janet
+$ [sudo] PREFIX=/usr janet bootstrap.janet
 ```
 
 ## Updating
 
-If you aleady have an installation of jpm configured, you can update `jpm` with `jpm install jpm`, which
-should automatically update to the latest jpm.`
+If you aleady have an installation of jpm configured, you can update `jpm` with
+
+```
+$ [sudo] jpm install jpm
+```
+
+which should automatically update to the latest `jpm`.
