@@ -6,21 +6,33 @@
 
 (defn generate-config
   "Make a pretty good configuration file for the current target. Returns a buffer with config source contents.
-  If `destdir` is given, will generate the folders needed to create a jpm tree." 
+  If `destdir` is given, will generate the folders needed to create a jpm tree."
   [&opt destdir silent as-data]
 
   (def hostos (os/which))
   (def iswin (= :windows hostos))
+  (def win-prefix (os/getenv "JANET_WINDOWS_PREFIX"))
+  (def prefix (dyn :prefix (os/getenv "JANET_PREFIX" (os/getenv "PREFIX" "/usr/local"))))
 
   # Inherit from dyns and env variables
-  (def prefix (dyn :prefix (os/getenv "JANET_PREFIX" (os/getenv "PREFIX" "/usr/local"))))
   (def pkglist (dyn :pkglist (os/getenv "JANET_PKGLIST" "https://github.com/janet-lang/pkgs.git")))
-  (def manpath (dyn :manpath (os/getenv "JANET_MANPATH" (if-not iswin (string prefix "/share/man/man1")))))
-  (def headerpath (dyn :headerpath (os/getenv "JANET_HEADERPATH" (if-not iswin (string prefix "/include/janet")))))
-  (def binpath (dyn :binpath (os/getenv "JANET_BINPATH" (if-not iswin (string prefix "/bin")))))
-  (def libpath (dyn :libpath (os/getenv "JANET_LIBPATH" (if-not iswin (string prefix "/lib")))))
+  (def manpath (dyn :manpath (os/getenv "JANET_MANPATH" (if win-prefix
+                                                          (string win-prefix "/docs")
+                                                          (string prefix "/share/man/man1")))))
+  (def headerpath (dyn :headerpath (os/getenv "JANET_HEADERPATH" (if win-prefix
+                                                                   (string win-prefix "/C")
+                                                                   (string prefix "/include/janet")))))
+  (def binpath (dyn :binpath (os/getenv "JANET_BINPATH" (if win-prefix
+                                                          (string win-prefix "/bin")
+                                                          (string prefix "/bin")))))
+  (def libpath (dyn :libpath (os/getenv "JANET_LIBPATH" (if win-prefix
+                                                          (string win-prefix "/C")
+                                                          (string prefix "/lib")))))
   (def fix-modpath (dyn :fix-modpath (os/getenv "JANET_STRICT_MODPATH")))
-  (def modpath (dyn :modpath (os/getenv "JANET_MODPATH" (if (and (not iswin) fix-modpath) (string prefix "/lib/janet")))))
+  (def modpath (dyn :modpath (os/getenv "JANET_MODPATH" (if fix-modpath
+                                                          (if win-prefix
+                                                            (string win-prefix "/Library")
+                                                            (string prefix "/lib/janet"))))))
 
   # Generate directories
   (when destdir
@@ -33,7 +45,7 @@
 
   (unless silent
     (when destdir (print "destdir: " destdir))
-    (print "Using install prefix: " prefix)
+    (print "Using install prefix: " (if win-prefix win-prefix prefix))
     (print "binpath: " binpath)
     (print "libpath: " libpath)
     (print "manpath: " manpath)

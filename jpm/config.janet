@@ -143,7 +143,11 @@
     (def checker (get config-checkers k))
     (def value (dyn k))
     (when (and checker (not (checker value)))
-      (errorf "invalid configuration binding %v, expected %v, got %v" k ctype value))))
+      (errorf "invalid configuration binding %v, expected %v, got %v" k ctype value)))
+  # Final patches
+  (unless (dyn :modpath)
+    (setdyn :modpath (dyn :syspath)))
+  nil)
 
 (defn load-config-file
   "Load a configuration from a file. If override is set, will override already set values.

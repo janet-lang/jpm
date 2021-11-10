@@ -60,9 +60,6 @@
       (load-config-file cf false)
       (load-config default-config/config false)))
 
-  # Make configuration a bit easier - modpath is optional and falls back to syspath
-  (if (= nil (dyn :modpath)) (setdyn :modpath (dyn :syspath)))
-
   # Local development - if --local flag is used, do a local installation to a tree.
   # Same for --tree=
   (cond
