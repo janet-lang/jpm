@@ -82,7 +82,7 @@
   "Link C or C++ object files together to make a native module."
   [has-cpp opts target & objects]
   (def linker (dyn (if has-cpp :c++-link :cc-link)))
-  (def cflags (getflags opts (if has-cpp :cppflags :cflags)))
+  (def cflags (getflags opts (if has-cpp :c++ :cc)))
   (def lflags [;(opt opts :lflags)
                ;(if (opts :static) [] (dyn:dynamic-lflags))])
   (def deplibs (get opts :native-deps []))

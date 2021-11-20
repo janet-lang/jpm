@@ -64,7 +64,7 @@
       :cc-link (if iswin "link.exe" "cc")
       :cflags (if iswin @["/nologo" "/MD"] @["-std=c99"])
       :cppflags (if iswin @["/nologo" "/MD" "/EHsc"] @["-std=c++11"])
-      :cflags-verbose (if iswin @[] @["-Wall" "-Wextra"])
+      :cflags-verbose @[]
       :curlpath "curl"
       :dynamic-cflags (case hostos
                         :windows @["/LD"]
