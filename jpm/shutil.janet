@@ -96,7 +96,9 @@
 (defn shell
   "Do a shell command"
   [& args]
-  (def args (map string args))
+  # First argument is executable and must not contain spaces, workaround
+  # for binaries which have spaces such as `zig cc`.
+  (def args (tuple ;(string/split " " (args 0)) ;(map string (slice args 1))))
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
