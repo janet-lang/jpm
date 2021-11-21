@@ -18,7 +18,7 @@
   (def res @[])
   (def fibers
     (seq [[i x] :pairs data]
-      (ev/go (fiber/new (fn [] (put res i (f x))) :tp) nil chan)))
+      (ev/go (fiber/new (fn pmap-worker [] (put res i (f x))) :tp) nil chan)))
   (repeat (length fibers)
     (def [sig fiber] (ev/take chan))
     (unless (= sig :ok)
@@ -56,13 +56,15 @@
   # run n workers in parallel
   (default n-workers (max 1 (length seen)))
   (assert (> n-workers 0))
+  (var short-circuit false)
   (defn worker [&]
     (while (next seen)
+      (if short-circuit (break))
       (def node (ev/take q))
       (if-not node (break))
       (when (in seen node)
         (put seen node nil)
-        (put res node (f node)))
+        (put res node (try (f node) ([err] (set short-circuit true) nil))))
       (each r (get inv node [])
         (when (zero? (set (dep-counts r) (dec (get dep-counts r 1))))
           (ev/give q r))))
