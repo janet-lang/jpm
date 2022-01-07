@@ -310,6 +310,7 @@
         (def bundle-type (dyn :bundle-type :git))
         (def man
           @{:dependencies (array/slice (get meta :dependencies []))
+            :version (get meta :version "0.0.0")
             :paths installed-files
             :type bundle-type})
         (case bundle-type
