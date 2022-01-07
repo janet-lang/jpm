@@ -7,8 +7,12 @@
 (import ../jpm/shutil)
 (import ../jpm/default-config)
 (import ../jpm/config)
+(import ../jpm/make-config)
 
-(cli/setup [])
+
+(setdyn :jpm-config (make-config/generate-config nil false true))
+
+(cli/setup ["--verbose"])
 
 (commands/clean)
 (commands/build)
