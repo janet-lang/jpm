@@ -66,6 +66,8 @@
   [path &opt no-deps base-env]
   (def env (require-jpm path no-deps base-env))
   (when-let [rules (get env :rules)] (merge-into (getrules) rules))
+  (when-let [project (get env :project)]
+    (setdyn :project (merge-into (dyn :project @{}) project)))
   env)
 
 (defn git
