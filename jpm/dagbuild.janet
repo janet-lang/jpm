@@ -11,8 +11,8 @@
 
 (defn pmap
   "Function form of `ev/gather`. If any of the
-  sibling fibers error, all other siblings will be canceled.  Returns the gathered
-  results in an array."
+  sibling fibers error, all other siblings will be canceled.  
+  Returns the gathered results in an array."
   [f data]
   (def chan (ev/chan))
   (def res @[])
@@ -64,7 +64,10 @@
       (if-not node (break))
       (when (in seen node)
         (put seen node nil)
-        (put res node (try (f node) ([err] (set short-circuit true) nil))))
+        (put res node (try (f node)
+                        ([err] (eprint "Failed.\nerror: " err)
+                               (set short-circuit true)
+                               nil))))
       (each r (get inv node [])
         (when (zero? (set (dep-counts r) (dec (get dep-counts r 1))))
           (ev/give q r))))
