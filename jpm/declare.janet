@@ -307,7 +307,8 @@
         (print "generating " manifest "...")
         (flush)
         (os/mkdir manifests)
-        (def bundle-type (dyn :bundle-type :git))
+        (def has-git (os/stat ".git" :mode))
+        (def bundle-type (dyn :bundle-type (if has-git :git :local)))
         (def man
           @{:dependencies (array/slice (get meta :dependencies []))
             :version (get meta :version "0.0.0")
@@ -325,6 +326,7 @@
           :tar
           (do
             (put man :url (slurp ".bundle-tar-url")))
+          :local nil
           (errorf "unknown bundle type %v" bundle-type))
         (spit manifest (string/format "%j\n" (table/to-struct man))))
 
