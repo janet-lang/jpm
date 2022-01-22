@@ -12,17 +12,24 @@
   "How to execute a rule at runtime -
   extract the recipe thunk(s) and call them."
   [rule]
-  (if-let [r (get rule :recipe)]
+  (when-let [r (get rule :recipe)]
+    (def no-print-errors (get rule :no-print-errors))
     (try
-      (if (indexed? r)
-        (each rr r (rr))
-        (r))
+      (do
+        (if (indexed? r)
+          (each rr r (rr))
+          (r))
+        :built)
       # On errors, ensure that none of the output file for this rule
       # are kept.
-      ([err f]
+      ([err fib]
+       (unless no-print-errors
+         (if (dyn :verbose)
+           (debug/stacktrace fib err "error: ")
+           (eprint "error: " err)))
        (each o (get rule :outputs [])
          (protect (shutil/rm o)))
-       (propagate err f)))))
+       :error))))
 
 (defn- target-not-found
   "Creates an error message."

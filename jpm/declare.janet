@@ -122,6 +122,9 @@
             (errorf "unknown source file type: %s, expected .c, .cc, or .cpp" src)))
         (def op (out-path src suffix sobjext))
         (compile-c (if (= ".c" suffix) :cc :c++) opts src op true)
+        # Add artificial dep between static object and non-static object - prevents double errors
+        # when doing default builds.
+        (add-dep op (out-path src suffix ".o"))
         op))
 
     (when-let [embedded (opts :embedded)]

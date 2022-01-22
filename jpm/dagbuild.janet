@@ -64,17 +64,15 @@
       (if-not node (break))
       (when (in seen node)
         (put seen node nil)
-        (put res node (try
-                        (f node)
-                        ([err fib]
-                         (if (dyn :verbose)
-                           (debug/stacktrace fib err (string "error in worker " n ": "))
-                           (eprint "error in worker " n ": " err))
-                         (set short-circuit true)
-                         nil))))
-      (each r (get inv node [])
-        (when (zero? (set (dep-counts r) (dec (get dep-counts r 1))))
-          (ev/give q r))))
+        (def status (f node))
+        (case status
+          :error (set short-circuit true)
+          # default
+          (put res node status)))
+      (unless short-circuit
+        (each r (get inv node [])
+          (when (zero? (set (dep-counts r) (dec (get dep-counts r 1))))
+            (ev/give q r)))))
     (ev/give q nil))
 
   (pmap worker (range n-workers))
