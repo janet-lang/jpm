@@ -413,7 +413,7 @@
                (do
                  (emit-storage-classes (form 1))
                  (emit-declaration (form 2) (form 3) (form 4)) (print ";"))
-               (emit-declaration (form 1) (form 2) (form 3) (print ";"))))
+               (do (emit-declaration (form 1) (form 2) (form 3)) (print ";"))))
       'directive (emit-directive ;(slice form 1))
       '@ (emit-directive ;(slice form 1))
       (errorf "unknown top-level form %v" form)))
