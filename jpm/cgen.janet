@@ -51,7 +51,10 @@
 
   (defn emit-struct-union-def
     [which name args defname]
-    (assert (even? (length args)) "expected even number of arguments")
+    (when (or (nil? args) (empty? args))
+      (prin which " " name)
+      (break))
+    (assert (even? (length args)) (string/format "expected even number of arguments, got %j" args))
     (prin which " ")
     (if name (prin name " "))
     (emit-block-start)
@@ -135,7 +138,7 @@
       :tuple
       (case (get definition 0)
         'struct (emit-struct-def nil (slice definition 1) alias)
-        'named-struct (emit-struct-def (definition 1) (slice definition 1) alias)
+        'named-struct (emit-struct-def (definition 1) (slice definition 2) alias)
         'enum (emit-enum-def nil (slice definition 1) alias)
         'named-enum (emit-enum-def (definition 1) (slice definition 2) alias)
         'union (emit-union-def nil (slice definition 1) alias)
@@ -412,8 +415,11 @@
              (if (indexed? (form 1))
                (do
                  (emit-storage-classes (form 1))
-                 (emit-declaration (form 2) (form 3) (form 4)) (print ";"))
-               (emit-declaration (form 1) (form 2) (form 3) (print ";"))))
+                 (emit-declaration (form 2) (form 3) (form 4))
+                 (print ";"))
+               (do
+                 (emit-declaration (form 1) (form 2) (form 3))
+                 (print ";"))))
       'directive (emit-directive ;(slice form 1))
       '@ (emit-directive ;(slice form 1))
       (errorf "unknown top-level form %v" form)))
