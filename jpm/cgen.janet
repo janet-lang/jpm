@@ -310,10 +310,19 @@
       (prin " = ")
       (emit-expression value true)))
 
+  (defn emit-janet [body]
+    (match (protect (match (compile body)
+                      (f (function? f)) (f)
+                      (t (table? t)) (error (t :error))))
+      [true (s (bytes? s))] (print s)
+      [true (t (indexed? t))] (print-ir t)
+      [false err] (error err)))
+
   (setfn emit-statement
     [form]
     (case (get form 0)
       'def (emit-declaration (form 1) (form 2) (form 3))
+      '$ (emit-janet ;(slice form 1))
       (emit-expression form true)))
 
   # Blocks
@@ -403,14 +412,6 @@
   (defn emit-directive
     [& args]
     (print "#" (string/join (map string args) " ")))
-
-  (defn emit-janet [body]
-    (match (protect (match (compile body)
-                      (f (function? f)) (f)
-                      (t (table? t)) (error (t :error))))
-      [true (s (bytes? s))] (print s)
-      [true (t (indexed? t))] (print-ir t)
-      [false err] (error err)))
 
   (setfn emit-top
     [form]
