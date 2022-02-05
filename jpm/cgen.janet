@@ -403,7 +403,15 @@
   (defn emit-directive
     [& args]
     (print "#" (string/join (map string args) " ")))
- 
+
+  (defn emit-janet [body]
+    (match (protect (match (compile body)
+                      (f (function? f)) (f)
+                      (t (table? t)) (error (t :error))))
+      [true (s (bytes? s))] (print s)
+      [true (t (indexed? t))] (print-ir t)
+      [false err] (error err)))
+
   (setfn emit-top
     [form]
     (case (get form 0)
@@ -422,6 +430,7 @@
                  (print ";"))))
       'directive (emit-directive ;(slice form 1))
       '@ (emit-directive ;(slice form 1))
+      '$ (emit-janet ;(slice form 1))
       (errorf "unknown top-level form %v" form)))
 
   # Final compilation
@@ -432,3 +441,29 @@
   "Macro that automatically quotes the body provided and calls (print-ir ...) on the body."
   [& body]
   ~(,print-ir ',body))
+
+#
+# Module loading
+#
+
+(defn- loader
+  [path &]
+  (with-dyns [:current-file path]
+    (let [p (parser/new)
+          c @[]]
+      (:consume p (slurp path))
+      (while (:has-more p)
+        (array/push c (:produce p)))
+      (defn tmpl [&opt rp]
+        (default rp (string/slice path 0 -4))
+        (with [o (file/open rp :wb)]
+          (with-dyns [:out o] (print-ir c))))
+      @{'render @{:doc "Main template function."
+                  :value tmpl}})))
+
+(defn add-loader
+  "Adds the custom template loader to Janet's module/loaders and
+  update module/paths."
+  []
+  (put module/loaders :cgen loader)
+  (module/add-paths ".cgen" :cgen))
