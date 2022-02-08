@@ -404,13 +404,16 @@
     [& args]
     (print "#" (string/join (map string args) " ")))
 
-  (defn emit-janet [body]
-    (match (protect (match (compile body)
-                      (f (function? f)) (f)
-                      (t (table? t)) (error (t :error))))
-      [true (s (bytes? s))] (print s)
-      [true (t (indexed? t))] (print-ir t)
-      [false err] (error err)))
+  (defn emit-janet [& body]
+    (each form body
+      (match
+        (protect (match
+                   (compile form)
+                   (f (function? f)) (f)
+                   (t (table? t)) (error (t :error))))
+        [true (s (bytes? s))] (print s)
+        [true (t (indexed? t))] (each f t (emit-top f))
+        [false err] (error err))))
 
   (setfn emit-top
     [form]
