@@ -8,7 +8,7 @@
   "Check if we should assume a DOS-like shell or default
   to posix shell."
   []
-  (dyn:use-batch-shell))
+  (dyn :use-batch-shell))
 
 (defn find-manifest-dir
   "Get the path to the directory containing manifests for installed
@@ -70,7 +70,8 @@
   "Create all directories needed for a file (mkdir -p)."
   [dest]
   (def segs (peg/match path-splitter dest))
-  (for i 1 (length segs)
+  (def i1 (if (and (is-win) (string/has-suffix? ":" (first segs))) 2 1))
+  (for i i1 (length segs)
     (def path (string/join (slice segs 0 i) "/"))
     (unless (empty? path) (os/mkdir path))))
 
