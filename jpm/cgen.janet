@@ -347,12 +347,14 @@
     (print))
 
   (defn emit-while
-    [condition body]
+    [condition stm & body]
     (emit-indent)
     (prin "while (")
     (emit-expression condition true)
     (prin ") ")
-    (emit-block body)
+    (if body
+      (emit-do [stm ;body])
+      (emit-block stm))
     (print))
 
   (defn emit-return
@@ -368,7 +370,7 @@
       (emit-block-start))
     (case (get form 0)
       'do (emit-do (slice form 1))
-      'while (emit-while (form 1) (form 2))
+      'while (emit-while ;(slice form 1))
       'if (emit-cond (slice form 1))
       'cond (emit-cond (slice form 1))
       'return (emit-return (form 1))
