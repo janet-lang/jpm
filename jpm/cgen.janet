@@ -329,7 +329,7 @@
     (print))
 
   (defn emit-while
-    [condition stm & body]
+    [condition stm body]
     (emit-indent)
     (prin "while (")
     (emit-expression condition true)
@@ -352,7 +352,7 @@
      (emit-block-start))
     (match form
      ['do & body] (emit-do body)
-     ['while & body] (emit-while ;body)
+     ['while cond stm & body] (emit-while cond stm body)
      ['if & body] (emit-cond body)
      ['cond & body] (emit-cond body)
      ['return val] (emit-return val)
