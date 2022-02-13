@@ -385,10 +385,10 @@
     (emit-do body))
 
   (defn emit-directive
-    [& args]
+    [args]
     (print "#" (string/join (map string args) " ")))
 
-  (defn emit-janet [& body]
+  (defn emit-janet [body]
     (each form body
       (match
         (protect (match
@@ -411,10 +411,10 @@
        (emit-declaration n t d)
        (print ";"))
      ['def n t d] (do (emit-declaration n t d) (print ";"))
-     ['directive & directive] (emit-directive ;directive)
-     ['@ & directive] (emit-directive ;directive)
-     ['$ & code] (emit-janet ;code)
-     (errorf "unknown top-level form %v" (tracev form))))
+     ['directive & directive] (emit-directive directive)
+     ['@ & directive] (emit-directive directive)
+     ['$ & code] (emit-janet code)
+     (errorf "unknown top-level form %v" form)))
 
   # Final compilation
   (each top ir
