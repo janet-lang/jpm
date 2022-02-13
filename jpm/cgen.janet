@@ -349,7 +349,7 @@
   (setfn emit-block
     [form &opt nobracket]
     (unless nobracket
-     (emit-block-start))
+      (emit-block-start))
     (match form
       ['do & body] (emit-do body)
       ['while cond stm & body] (emit-while cond stm body)
