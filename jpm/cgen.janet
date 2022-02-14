@@ -294,8 +294,8 @@
 
   (setfn emit-statement
     [form]
-    (case (get form 0)
-      'def (emit-declaration (form 1) (form 2) (form 3))
+    (match form
+      ['def n t & v] (emit-declaration n t (first v))
       (emit-expression form true)))
 
   # Blocks
