@@ -149,7 +149,7 @@
         ['* val] (emit-ptr-type val alias)
         ['ptrptr val] (emit-ptr-ptr-type val alias)
         ['** val] (emit-ptr-ptr-type (definition 1) alias)
-        ['array t n] (emit-array-type t n alias)
+        ['array t & n] (emit-array-type t (get n 0) alias)
         ['const t] (emit-const-type t alias)
         (errorf "unexpected type form %v" definition))
       (errorf "unexpected type form %v" definition)))
