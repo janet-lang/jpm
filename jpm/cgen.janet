@@ -149,7 +149,6 @@
         ['* val] (emit-ptr-type val alias)
         ['ptrptr val] (emit-ptr-ptr-type val alias)
         ['** val] (emit-ptr-ptr-type (definition 1) alias)
-        ['array t & n] (emit-array-type t (get n 0) alias)
         ['const t] (emit-const-type t alias)
         (errorf "unexpected type form %v" definition))
       (errorf "unexpected type form %v" definition)))
@@ -287,7 +286,14 @@
   (defn emit-declaration
     [v vtype &opt value]
     (emit-type vtype)
-    (prin " " v)
+    (match v
+      ['array n & i]
+      (do
+        (prin " " n)
+        (prin "[")
+        (if-not (empty? i) (prin i))
+        (prin "]"))
+      (prin " " v))
     (when (not= nil value)
       (prin " = ")
       (emit-expression value true)))
