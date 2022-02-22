@@ -134,25 +134,23 @@
 
   (setfn emit-type
     [definition &opt alias]
-    (case (type definition)
-      :tuple
-      (case (get definition 0)
-        'struct (emit-struct-def nil (slice definition 1) alias)
-        'named-struct (emit-struct-def (definition 1) (slice definition 2) alias)
-        'enum (emit-enum-def nil (slice definition 1) alias)
-        'named-enum (emit-enum-def (definition 1) (slice definition 2) alias)
-        'union (emit-union-def nil (slice definition 1) alias)
-        'named-union (emit-union-def (definition 1) (slice definition 2) alias)
-        'fn (emit-fn-pointer-type (definition 1) (slice definition 2) alias)
-        'ptr (emit-ptr-type (definition 1) alias)
-        '* (emit-ptr-type (definition 1) alias)
-        'ptrptr (emit-ptr-ptr-type (definition 1) alias)
-        '** (emit-ptr-ptr-type (definition 1) alias)
-        'array (emit-array-type (definition 1) (get definition 2) alias)
-        'const (emit-const-type (definition 1) alias)
+    (match definition
+      (d (bytes? d)) (do (prin d) (if alias (prin " " alias)))
+      (t (tuple? t))
+      (match t
+        ['struct & body] (emit-struct-def nil body alias)
+        ['named-struct n & body] (emit-struct-def n body alias)
+        ['enum & body] (emit-enum-def nil body alias)
+        ['named-enum n & body] (emit-enum-def n body alias)
+        ['union & body] (emit-union-def nil body alias)
+        ['named-union n & body] (emit-union-def n body alias)
+        ['fn n & body] (emit-fn-pointer-type n body alias)
+        ['ptr val] (emit-ptr-type val alias)
+        ['* val] (emit-ptr-type val alias)
+        ['ptrptr val] (emit-ptr-ptr-type val alias)
+        ['** val] (emit-ptr-ptr-type (definition 1) alias)
+        ['const t] (emit-const-type t alias)
         (errorf "unexpected type form %v" definition))
-      :keyword (do (prin definition) (if alias (prin " " alias)))
-      :symbol (do (prin definition) (if alias (prin " " alias)))
       (errorf "unexpected type form %v" definition)))
 
   (defn emit-typedef
@@ -241,79 +239,69 @@
     (prin "}"))
 
   (setfn emit-expression
-     [form &opt noparen]
-     (case (type form)
-       :symbol (prin form)
-       :keyword (prin form)
-       :number (prinf "%.17g" form)
-       :string (prinf "%v" form) # todo - better match escape codes
-       :tuple
-       (do
-         (unless noparen (prin "("))
-         (case (get form 0)
-           'literal (prin (string (form 1)))
-           'quote (prin (string (form 1)))
-           '+ (emit-binop ;form)
-           '- (emit-binop ;form)
-           '* (emit-binop ;form)
-           '/ (emit-binop ;form)
-           '% (emit-binop ;form)
-           '< (emit-binop ;form)
-           '> (emit-binop ;form)
-           '<= (emit-binop ;form)
-           '>= (emit-binop ;form)
-           '== (emit-binop ;form)
-           '!= (emit-binop ;form)
-           'and (emit-binop "&&" ;(slice form 1))
-           'or (emit-binop "||" ;(slice form 1))
-           'band (emit-binop "&" ;(slice form 1))
-           'bor (emit-binop "|" ;(slice form 1))
-           'bxor (emit-binop "^" ;(slice form 1))
-           'bnot (emit-unop "~" (form 1))
-           'not (emit-unop "!" (form 1))
-           'neg (emit-unop "-" (form 1))
-           'blshift (emit-binop "<<" (form 1) (form 2))
-           'brshift (emit-binop ">>" (form 1) (form 2))
-           'index (emit-aindex (form 1) (form 2))
-           'call (emit-funcall (slice form 1))
-           'set (emit-set (form 1) (form 2))
-           'deref (emit-deref (form 1))
-           'addr (emit-address (form 1))
-           'cast (emit-cast (form 1) (form 2))
-           'struct (emit-struct-ctor (slice form 1))
-           'array (emit-array-ctor (slice form 1))
-           '-> (emit-indexer "->" (form 1) (form 2))
-           '. (emit-indexer "." (form 1) (form 2))
-           (emit-funcall form))
-         (unless noparen (prin ")")))
-       :array (do
-                (unless noparen (prin "("))
-                (emit-array-ctor form)
-                (unless noparen (prin ")")))
-       :struct (do
-                 (unless noparen (prin "("))
-                 (emit-struct-ctor (mapcat identity (sort (pairs form))))
-                 (unless noparen (print ")")))
-       :table (do
-                (unless noparen (prin "("))
-                (emit-struct-ctor (mapcat identity (sort (pairs form))))
-                (unless noparen (print ")")))
-       (errorf "invalid expression %v" form)))
+    [form &opt noparen]
+    (match form
+     (f (or (symbol? f) (keyword? f))) (prin f)
+     (n (number? n)) (prinf "%.17g" n)
+     (s (string? s)) (prinf "%v" s) # todo - better match escape codes
+     (a (array? a)) (do
+                      (unless noparen (prin "("))
+                      (emit-array-ctor a)
+                      (unless noparen (prin ")")))
+     (d (dictionary? d))
+     (do
+       (unless noparen (prin "("))
+       (emit-struct-ctor (mapcat identity (sort (pairs d))))
+       (unless noparen (print ")")))
+     (t (tuple? t))
+     (do
+       (unless noparen (prin "("))
+       (def bops
+         {'+ '+ '- '- '* '* '/ '/ '% '% '< '<
+          '> '> '<= '<= '>= '>= '== '== '!= '!=
+          'and "&&" 'or "||" 'band "&" 'bor "|" 'bxor "^"
+          'blshift "<<" 'brshift ">>"})
+       (def uops {'bnot "~" 'not "!" 'neg "-"})
+       (match t
+         [(bs (bops bs)) & rest] (emit-binop (bops bs) ;rest)
+         [(bs (uops bs)) & rest] (emit-unop (uops bs) ;rest)
+         ['literal l] (prin (string l))
+         ['quote q] (prin (string q))
+         ['index v i] (emit-aindex v i)
+         ['call & args] (emit-funcall args)
+         ['set v i] (emit-set v i)
+         ['deref v] (emit-deref v)
+         ['addr v] (emit-address v)
+         ['cast t v] (emit-cast t v)
+         ['struct & vals] (emit-struct-ctor vals)
+         ['array & vals] (emit-array-ctor vals)
+         ['-> v f] (emit-indexer "->" v f)
+         ['. v f] (emit-indexer "." v f)
+         (emit-funcall t))
+       (unless noparen (prin ")")))
+     ie (errorf "invalid expression %v" ie)))
 
   # Statements
 
   (defn emit-declaration
     [v vtype &opt value]
     (emit-type vtype)
-    (prin " " v)
+    (match v
+      ['array n & i]
+      (do
+        (prin " " n)
+        (prin "[")
+        (if-not (empty? i) (prin i))
+        (prin "]"))
+      (prin " " v))
     (when (not= nil value)
       (prin " = ")
       (emit-expression value true)))
 
   (setfn emit-statement
     [form]
-    (case (get form 0)
-      'def (emit-declaration (form 1) (form 2) (form 3))
+    (match form
+      ['def n t & v] (emit-declaration n t (first v))
       (emit-expression form true)))
 
   # Blocks
@@ -337,7 +325,7 @@
           (prin " else ")
           (emit-block condition))
         (do
-          (if is-first 
+          (if is-first
             (do (emit-indent) (prin "if ("))
             (prin " else if ("))
           (set is-first false)
@@ -347,12 +335,14 @@
     (print))
 
   (defn emit-while
-    [condition body]
+    [condition stm body]
     (emit-indent)
     (prin "while (")
     (emit-expression condition true)
     (prin ") ")
-    (emit-block body)
+    (if (empty? body)
+      (emit-block stm)
+      (emit-do [stm ;body]))
     (print))
 
   (defn emit-return
@@ -366,17 +356,17 @@
     [form &opt nobracket]
     (unless nobracket
       (emit-block-start))
-    (case (get form 0)
-      'do (emit-do (slice form 1))
-      'while (emit-while (form 1) (form 2))
-      'if (emit-cond (slice form 1))
-      'cond (emit-cond (slice form 1))
-      'return (emit-return (form 1))
-      'break (do (emit-indent) (print "break;"))
-      'continue (do (emit-indent) (print "continue;"))
-      'label (print "label " (form 1) ":")
-      'goto (do (emit-indent) (print "goto " (form 1)))
-      (do (emit-indent) (emit-statement form) (print ";")))
+    (match form
+      ['do & body] (emit-do body)
+      ['while cond stm & body] (emit-while cond stm body)
+      ['if & body] (emit-cond body)
+      ['cond & body] (emit-cond body)
+      ['return val] (emit-return val)
+      ['break] (do (emit-indent) (print "break;"))
+      ['continue] (do (emit-indent) (print "continue;"))
+      ['label lab] (print "label " lab ":")
+      ['goto lab] (do (emit-indent) (print "goto " (form 1)))
+      stm (do (emit-indent) (emit-statement stm) (print ";")))
     (unless nobracket (emit-block-end)))
 
   # Top level forms
@@ -401,10 +391,10 @@
     (emit-do body))
 
   (defn emit-directive
-    [& args]
+    [args]
     (print "#" (string/join (map string args) " ")))
 
-  (defn emit-janet [& body]
+  (defn emit-janet [body]
     (each form body
       (match
         (protect (match
@@ -417,23 +407,19 @@
 
   (setfn emit-top
     [form]
-    (case (get form 0)
-      'defn (if (indexed? (form 1))
-              (emit-function (form 1) (form 2) (form 3) (form 4) (slice form 5))
-              (emit-function [] (form 1) (form 2) (form 3) (slice form 4)))
-      'deft (do (print) (emit-typedef (form 1) (form 2)))
-      'def (do (print)
-             (if (indexed? (form 1))
-               (do
-                 (emit-storage-classes (form 1))
-                 (emit-declaration (form 2) (form 3) (form 4))
-                 (print ";"))
-               (do
-                 (emit-declaration (form 1) (form 2) (form 3))
-                 (print ";"))))
-      'directive (emit-directive ;(slice form 1))
-      '@ (emit-directive ;(slice form 1))
-      '$ (emit-janet ;(slice form 1))
+    (match form
+      ['defn (sc (indexed? sc)) n al rt & b] (emit-function sc n al rt b)
+      ['defn n al rt & b] (emit-function [] n al rt b)
+      ['deft n d] (do (print) (emit-typedef n d))
+      ['def (sc (indexed? sc)) n t d]
+      (do (print)
+        (emit-storage-classes sc)
+        (emit-declaration n t d)
+        (print ";"))
+      ['def n t d] (do (emit-declaration n t d) (print ";"))
+      ['directive & directive] (emit-directive directive)
+      ['@ & directive] (emit-directive directive)
+      ['$ & code] (emit-janet code)
       (errorf "unknown top-level form %v" form)))
 
   # Final compilation
