@@ -134,8 +134,8 @@
     (let [end (last (peg/match path-splitter src))
           isdir (= (os/stat src :mode) :directory)]
       (shell "C:\\Windows\\System32\\xcopy.exe"
-             (string/replace "/" "\\" src)
-             (string/replace "/" "\\" (if isdir (string dest "\\" end) dest))
+             (string/replace-all "/" "\\" src)
+             (string/replace-all "/" "\\" (if isdir (string dest "\\" end) dest))
              "/y" "/s" "/e" "/i"))
     (shell "cp" "-rf" src dest)))
 
