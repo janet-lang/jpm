@@ -213,9 +213,10 @@
   uses the system libraries and headers for janet."
   [tree]
   (def abs-tree (abspath tree))
-  (def tree-bin (string abs-tree "/bin"))
-  (def tree-lib (string abs-tree "/lib"))
-  (def tree-man (string abs-tree "/man"))
+  (def sep (if (is-win) "\\" "/"))
+  (def tree-bin (string abs-tree sep "bin"))
+  (def tree-lib (string abs-tree sep "lib"))
+  (def tree-man (string abs-tree sep "man"))
   (os/mkdir abs-tree)
   (os/mkdir tree-bin)
   (os/mkdir tree-lib)
