@@ -15,61 +15,121 @@
     ```
     usage: jpm [--key=value, --flag] ... [subcommand] [args] ...
 
-    Run from a directory containing a project.janet file to perform operations
-    on a project, or from anywhere to do operations on the global module cache (modpath).
-    Commands that need write permission to the modpath are considered privileged commands - in
-    some environments they may require super user privileges.
-    Other project-level commands need to have a ./project.janet file in the current directory.
+    Run from a directory containing a project.janet file to perform
+    operations on a project, or from anywhere to do operations on the
+    global module cache (modpath).  Commands that need write permission to
+    the modpath are considered privileged commands - in some environments
+    they may require super user privileges.  Other project-level commands
+    need to have a ./project.janet file in the current directory.
 
-    To install/manage packages in a local subtree, use the --local flag (or -l) to install packages
-    to ./jpm_tree. This should generally not require elevated privileges.
+    To install/manage packages in a local subtree, use the --local flag
+    (or -l) to install packages to ./jpm_tree. This should generally not
+    require elevated privileges.
 
     Unprivileged global subcommands:
-      help : show this help text
-      show-paths : prints the paths that will be used to install things.
-      quickbin entry executable : Create an executable from a janet script with a main function.
+
+        help
+            Show this help text.
+
+        show-paths
+            Prints the paths that will be used to install things.
+
+        quickbin entry executable
+            Create an executable from a janet script with a main function.
 
     Privileged global subcommands:
-      install (repo or name)... : install artifacts. If a repo is given, install the contents of that
-                       git repository, assuming that the repository is a jpm project. If not, build
-                       and install the current project.
-      uninstall (module)... : uninstall a module. If no module is given, uninstall the module
-                           defined by the current directory.
-      clear-cache : clear the git cache. Useful for updating dependencies.
-      clear-manifest : clear the manifest. Useful for fixing broken installs.
-      make-lockfile (lockfile) : Create a lockfile based on repositories in the cache. The
-                lockfile will record the exact versions of dependencies used to ensure a reproducible
-                build. Lockfiles are best used with applications, not libraries. The default lockfile
-                name is lockfile.jdn.
-      load-lockfile (lockfile) : Install modules from a lockfile in a reproducible way. The
-                                 default lockfile name is lockfile.jdn.
-      update-pkgs : Update the current package listing from the remote git repository selected.
-      exec : Run any shell command with JANET_PATH set to the correct module tree.
-      janet : Run the Janet interpreter with JANET_PATH set to the correct module tree.
+
+        install (repo or name)...
+            Install artifacts. If a repo is given, install the contents of
+            that git repository, assuming that the repository is a jpm
+            project. If not, build and install the current project.
+
+        uninstall (module)...
+            Uninstall a module. If no module is given, uninstall the
+            module defined by the current directory.
+
+        clear-cache
+            Clear the git cache. Useful for updating dependencies.
+
+        clear-manifest
+            Clear the manifest. Useful for fixing broken installs.
+
+        make-lockfile (lockfile)
+            Create a lockfile based on repositories in the cache. The
+            lockfile will record the exact versions of dependencies used
+            to ensure a reproducible build. Lockfiles are best used with
+            applications, not libraries. The default lockfile name is
+            lockfile.jdn.
+
+        load-lockfile (lockfile)
+            Install modules from a lockfile in a reproducible way. The
+            default lockfile name is lockfile.jdn.
+
+        update-pkgs
+            Update the current package listing from the remote git
+            repository selected.
+
+        exec
+            Run any shell command with JANET_PATH set to the correct
+            module tree.
+
+        janet
+            Run the Janet interpreter with JANET_PATH set to the correct
+            module tree.
 
     Privileged project subcommands:
-      deps : install dependencies for the current project.
-      install : install artifacts of the current project.
-      uninstall : uninstall the current project's artifacts.
+
+        deps
+            Install dependencies for the current project.
+
+        install
+            Install artifacts of the current project.
+
+        uninstall
+            Uninstall the current project's artifacts.
 
     Unprivileged project subcommands:
-      build : build all artifacts
-      clean : remove any generated files or artifacts
-      test : run tests. Tests should be .janet files in the test/ directory relative to project.janet.
-      run rule : run a rule. Can also run custom rules added via (phony "task" [deps...] ...)
-                 or (rule "ouput.file" [deps...] ...).
-      rules : list rules available with run.
-      list-installed : list installed packages in the current syspath.
-      list-pkgs (search) : list packages in the package listing that the contain the string search.
-                           If no search pattern is given, prints the entire package listing.
-      rule-tree (root rule) (depth) : Print a nice tree to see what rules depend on other rules.
-                                      Optionally provide a root rule to start printing from, and a
-                                      max depth to print. Without these options, all rules will print
-                                      their full dependency tree.
-      debug-repl : Run a repl in the context of the current project.janet file. This lets you run rules and
-                   otherwise debug the current project.janet file.
-      save-config path : Save the input configuration to a file.
-     ```)
+
+        build
+            Build all artifacts.
+
+        clean
+            Remove any generated files or artifacts.
+
+        test
+
+            Run tests. Tests should be .janet files in the test/ directory
+            relative to project.janet.
+
+        run rule
+            Run a rule. Can also run custom rules added via `(phony "task"
+            [deps...] ...)` or `(rule "ouput.file" [deps...] ...)`.
+
+        rules
+            List rules available with run.
+
+        list-installed
+            List installed packages in the current syspath.
+
+        list-pkgs (search)
+            List packages in the package listing that the contain the
+            string search.  If no search pattern is given, prints the
+            entire package listing.
+
+        rule-tree (root rule) (depth)
+            Print a nice tree to see what rules depend on other rules.
+            Optionally provide a root rule to start printing from, and a
+            max depth to print. Without these options, all rules will
+            print their full dependency tree.
+
+        debug-repl
+            Run a repl in the context of the current project.janet
+            file. This lets you run rules and otherwise debug the current
+            project.janet file.
+
+        save-config path
+            Save the input configuration to a file.
+    ```)
 
   (print)
   (print "Keyword arguments:")
