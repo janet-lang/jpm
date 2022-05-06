@@ -75,7 +75,7 @@
         (unless (dyn:verbose) (print "compiling " src " to " dest "...") (flush))
         (create-dirs dest)
         (if (dyn :is-msvc)
-          (shell cc ;defines "/c" ;cflags (string "/Fo" dest) src)
+          (clexe-shell cc ;defines "/c" ;cflags (string "/Fo" dest) src)
           (shell cc "-c" src ;defines ;cflags "-o" dest))))
 
 (defn link-c
@@ -94,7 +94,7 @@
         (unless (dyn:verbose) (print "linking " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
-          (shell linker ;ldflags (string "/OUT:" target) ;objects
+          (clexe-shell linker ;ldflags (string "/OUT:" target) ;objects
                  (string (dyn:headerpath) "/janet.lib") ;dep-importlibs ;lflags)
           (shell linker ;cflags ;ldflags `-o` target ;objects ;lflags))))
 
@@ -338,7 +338,7 @@ int main(int argc, const char **argv) {
           (flush)
           (create-dirs oimage_dest)
           (if (dyn:is-msvc)
-            (shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
+            (clexe-shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
             (shell cc "-c" cimage_dest ;defines ;cflags "-o" oimage_dest))
           (if has-cpp
             (let [linker (opt opts (if (dyn :is-msvc) :c++-link :c++))
@@ -346,12 +346,12 @@ int main(int argc, const char **argv) {
               (print "linking " dest "...")
               (flush)
               (if (dyn:is-msvc)
-                (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
+                (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
             (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
               (print "linking " dest "...")
               (flush)
               (create-dirs dest)
               (if (dyn:is-msvc)
-                (shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
+                (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
                 (shell linker ;cflags ;ldflags `-o` dest oimage_dest ;lflags)))))))

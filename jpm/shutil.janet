@@ -99,6 +99,7 @@
   [& args]
   # First argument is executable and must not contain spaces, workaround
   # for binaries which have spaces such as `zig cc`.
+  # TODO - remove?
   (def args (tuple ;(string/split " " (args 0)) ;(map string (slice args 1))))
   (when (dyn :verbose)
     (flush)
@@ -122,9 +123,32 @@
   (def proc (os/spawn args :epx env))
   (def out (get proc :out))
   (def buf @"")
-  (ev/spawn (:read out :all buf))
-  (:wait proc)
+  (ev/gather
+    (:read out :all buf)
+    (:wait proc))
   (string/trimr buf))
+
+(defn clexe-shell
+  "Variant of `shell` to play nice with cl.exe, which outputs some junk to terminal that can't be turned off."
+  [& args]
+  (if (dyn :silent) (break (shell ;args)))
+  (when (dyn :verbose)
+    (flush)
+    (print ;(interpose " " args)))
+  (def env (patch-env))
+  (put env :out :pipe)
+  (def proc (os/spawn args :epx env))
+  (def out (get proc :out))
+  (def buf @"")
+  (ev/gather
+    (do
+      (:read out :all buf)
+      (def index (string/find "\n" buf))
+      (if index
+        (prin (buffer/slice buf (inc index)))
+        (prin buf)))
+    (:wait proc))
+  (proc :return-code))
 
 (defn copy
   "Copy a file or directory recursively from one location to another."
