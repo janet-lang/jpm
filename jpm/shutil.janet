@@ -128,27 +128,33 @@
     (:wait proc))
   (string/trimr buf))
 
-(defn clexe-shell
+(defn drop1-shell
   "Variant of `shell` to play nice with cl.exe, which outputs some junk to terminal that can't be turned off."
-  [& args]
+  [std args]
   (if (dyn :silent) (break (shell ;args)))
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
   (def env (patch-env))
-  (put env :out :pipe)
-  (def proc (os/spawn args :epx env))
-  (def out (get proc :out))
+  (put env std :pipe)
+  (def proc (os/spawn args :ep env))
+  (def out (get proc std))
   (def buf @"")
+  (var index nil)
   (ev/gather
     (do
       (:read out :all buf)
-      (def index (string/find "\n" buf))
-      (if index
-        (prin (buffer/slice buf (inc index)))
-        (prin buf)))
+      (set index (string/find "\n" buf)))
     (:wait proc))
-  (proc :return-code))
+  (def rc (proc :return-code))
+  (if (and (zero? rc) index)
+    (prin (buffer/slice buf (inc index)))
+    (prin buf))
+  (unless (zero? rc)
+    (errorf "command failed with non-zero exit code %d" rc))
+  0)
+
+(defn clexe-shell [& args] (drop1-shell :out args))
 
 (defn copy
   "Copy a file or directory recursively from one location to another."

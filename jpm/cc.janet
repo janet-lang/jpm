@@ -91,7 +91,7 @@
   (def dep-importlibs (seq [x :in deplibs] (string (dyn:modpath) "/" x ".lib")))
   (def ldflags [;(opt opts :ldflags []) ;dep-ldflags])
   (rule target objects
-        (unless (dyn:verbose) (print "linking " target "...") (flush))
+        (unless (dyn:verbose) (print "creating native module " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
           (clexe-shell linker ;ldflags (string "/OUT:" target) ;objects
