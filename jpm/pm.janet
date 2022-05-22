@@ -200,6 +200,7 @@
     (with-dyns [:rules @{}
                 :bundle-type (or bundle-type :git)
                 :shallow shallow
+                :buildpath "build/" # reset build path to default
                 :modpath (abspath (dyn:modpath))
                 :headerpath (abspath (dyn:headerpath))
                 :libpath (abspath (dyn:libpath))
@@ -292,7 +293,7 @@
   (spit odest
     (string/join
       (map |(string/format "(setdyn %v %j)" ($ 0) ($ 1))
-           (pairs options))
+           (sorted (pairs options)))
       "\n"))
   (spit dest
     (string/format
