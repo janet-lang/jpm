@@ -288,7 +288,7 @@
   (put options :buildpath new-build-path)
   (def dest (string path "/project.janet"))
   (def odest (string path "/options.janet"))
-  (print "creating out of tree build at " path)
+  (print "creating out of tree build at " (abspath path))
   (create-dirs dest)
   (spit odest
     (string/join

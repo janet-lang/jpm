@@ -306,11 +306,12 @@
 
 (defn configure
   "Setup an out-of-tree build with certain configuration options."
-  [path & settings]
+  [&opt path]
   (def opts @{})
   (def module (require-jpm "./project.janet" true))
   (eachk key config-set
     (put opts key (dyn key)))
+  (default path (string "_" (dyn :build-type "out")))
   (out-of-tree-config path opts))
 
 (def subcommands

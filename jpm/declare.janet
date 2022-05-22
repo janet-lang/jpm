@@ -7,9 +7,14 @@
 (use ./shutil)
 (use ./cc)
 
+(defn- check-release
+  []
+  (= "release" (dyn:build-type "release")))
+
 (defn install-rule
   "Add install and uninstall rule for moving files from src into destdir."
   [src destdir]
+  (unless (check-release) (break))
   (def name (last (peg/match path-splitter src)))
   (def path (string destdir "/" name))
   (array/push (dyn :installed-files) path)
@@ -21,8 +26,9 @@
 (defn install-file-rule
   "Add install and uninstall rule for moving file from src into destdir."
   [src dest]
+  (unless (check-release) (break))
   (array/push (dyn :installed-files) dest)
-  (def dest1  (string (dyn :dest-dir "") dest))
+  (def dest1 (string (dyn :dest-dir "") dest))
   (task "install" []
         (copyfile src dest1)))
 
@@ -136,7 +142,8 @@
         (compile-c :cc opts c-src o-src true)))
 
     (archive-c opts sname ;sobjects)
-    (add-dep "build" sname)
+    (when (check-release)
+      (add-dep "build" sname))
     (put declare-targets :static sname)
     (install-rule sname path))
 
@@ -330,42 +337,49 @@
 
   (task "build" [])
 
-  (task "manifest" [manifest])
-  (rule manifest ["uninstall"]
-        (print "generating " manifest "...")
-        (flush)
-        (os/mkdir manifests)
-        (def has-git (os/stat ".git" :mode))
-        (def bundle-type (dyn :bundle-type (if has-git :git :local)))
-        (def man
-          @{:dependencies (array/slice (get meta :dependencies []))
-            :version (get meta :version "0.0.0")
-            :paths installed-files
-            :type bundle-type})
-        (case bundle-type
-          :git
-          (do
-            (if-let [shallow (dyn :shallow)]
-              (put man :shallow shallow))
-            (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
-              (put man :url (if-not (empty? x) x)))
-            (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
-              (put man :tag (if-not (empty? x) x))))
-          :tar
-          (do
-            (put man :url (slurp ".bundle-tar-url")))
-          :local nil
-          (errorf "unknown bundle type %v" bundle-type))
-        (spit manifest (string/format "%j\n" (table/to-struct man))))
+  (unless (check-release)
+    (task "install" []
+      (print "The install target is only enabled for release builds.")
+      (os/exit 1)))
 
-  (task "install" ["uninstall" "build" manifest]
-        (when (dyn :test)
-          (run-tests))
-        (print "Installed as '" (meta :name) "'.")
-        (flush))
+  (when (check-release)
 
-  (task "uninstall" []
-        (uninstall (meta :name)))
+    (task "manifest" [manifest])
+    (rule manifest ["uninstall"]
+          (print "generating " manifest "...")
+          (flush)
+          (os/mkdir manifests)
+          (def has-git (os/stat ".git" :mode))
+          (def bundle-type (dyn :bundle-type (if has-git :git :local)))
+          (def man
+            @{:dependencies (array/slice (get meta :dependencies []))
+              :version (get meta :version "0.0.0")
+              :paths installed-files
+              :type bundle-type})
+          (case bundle-type
+            :git
+            (do
+              (if-let [shallow (dyn :shallow)]
+                (put man :shallow shallow))
+              (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
+                (put man :url (if-not (empty? x) x)))
+              (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
+                (put man :tag (if-not (empty? x) x))))
+            :tar
+            (do
+              (put man :url (slurp ".bundle-tar-url")))
+            :local nil
+            (errorf "unknown bundle type %v" bundle-type))
+          (spit manifest (string/format "%j\n" (table/to-struct man))))
+
+    (task "install" ["uninstall" "build" manifest]
+          (when (dyn :test)
+            (run-tests))
+          (print "Installed as '" (meta :name) "'.")
+          (flush))
+
+    (task "uninstall" []
+          (uninstall (meta :name))))
 
   (task "clean" []
         (def bd (find-build-dir))
