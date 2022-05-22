@@ -271,6 +271,17 @@
     :ep
     environ))
 
+(defn run-script
+  "Run a local script in the monkey patched environment."
+  [path]
+  (def bd (find-build-dir))
+  (def monkey-patch (make-monkeypatch bd))
+  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  (os/execute
+    [(dyn:janet) "-e" monkey-patch "--" path]
+    :ep
+    environ))
+
 (defn run-tests
   "Run tests on a project in the current directory. The tests will
   be run in the environment dictated by (dyn :modpath)."
