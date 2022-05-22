@@ -20,6 +20,10 @@
   "A table of all of the dynamic config bindings to parsers."
   @{})
 
+(def config-options
+  "A table of possible options for enum option types."
+  @{})
+
 (def config-checkers
   "A table of all of the dynamic config bindings to checkers (validators)."
   @{})
@@ -117,14 +121,15 @@
 (defmacro defconf
   "Define a function that wraps (dyn :keyword). This will
   allow use of dynamic bindings with static runtime checks."
-  [kw &opt parser docs & meta]
+  [kw &opt parser docs options]
   (put config-parsers kw (get config-parser-types parser))
   (put config-checkers kw (get config-checker-types parser))
+  (put config-options kw options)
   (put config-docs kw docs)
   (put config-set kw parser)
   (unless builtins-loaded (put builtin-configs kw true))
   (let [s (symbol "dyn:" kw)]
-    ~(defn ,s ,;meta [&opt dflt]
+    ~(defn ,s [&opt dflt]
        (def x (,dyn ,kw dflt))
        (if (= x nil)
          (,errorf "no value found for dynamic binding %v" ,kw)
@@ -152,9 +157,13 @@
   (eachk k config-set
     (def ctype (get config-set k))
     (def checker (get config-checkers k))
+    (def options (get config-options k))
     (def value (dyn k))
+    (when (and options (not (index-of value options)))
+      (when (not= nil value)
+        (errorf "invalid configuration option %v, expected one of %j, got %v" k options value)))
     (when (and checker (not (checker value)))
-      (errorf "invalid configuration binding %v, expected %v, got %v" k ctype value)))
+      (errorf "invalid configuration option %v, expected %v, got %v" k ctype value)))
   # Final patches
   (unless (dyn :modpath)
     (setdyn :modpath (dyn :syspath)))
@@ -233,7 +242,7 @@
 (defconf :libpath :string
   "The directory that contains janet libraries for standalone binaries and other native artifacts")
 (defconf :modpath :string-opt "The directory tree to install packages to")
-(defconf :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
+(defconf :optimize :int-opt "The default optimization level to use for C/C++ compilation if otherwise unspecified" [0 1 2 3])
 (defconf :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
 (defconf :offline :boolean "Do not download remote repositories when installing packages")
 (defconf :update-pkgs :boolean "Update package listing before doing anything.")
@@ -269,5 +278,6 @@
 (defconf :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
 (defconf :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
 (defconf :dest-dir :string-opt "Prefix to add to installed files. Useful for bootstrapping.")
+(defconf :build-type :string-opt "A preset of options for debug, release, and develop builds." ["release" "debug" "develop"])
 
 (set builtins-loaded true)

@@ -43,17 +43,31 @@
   "Generate many defines. Takes a dictionary of defines. If a value is
   true, generates -DNAME (/DNAME on windows), otherwise -DNAME=value."
   [defines]
-  (seq [[d v] :pairs defines] (make-define d (if (not= v true) v))))
+  (def ret (seq [[d v] :pairs defines] (make-define d (if (not= v true) v))))
+  (array/push ret (make-define "JANET_BUILD_TYPE" (dyn:build-type "release")))
+  ret)
 
 (defn- getflags
   "Generate the c flags from the input options."
   [opts compiler]
   (def flags (if (= compiler :cc) :cflags :cppflags))
+  (def bt (dyn:build-type "release"))
+  (def bto
+    (case bt
+      "release" 2
+      "debug" 0
+      "develop" 2
+      2))
+  (def debug-syms
+    (if (or (= bt "develop") (= bt "debug"))
+      ["-g"]
+      []))
   @[;(opt opts flags)
     ;(if (dyn:verbose) (dyn:cflags-verbose) [])
+    ;debug-syms
     (string "-I" (dyn:headerpath))
     (string "-I" (dyn:modpath))
-    (string "-O" (opt opts :optimize))])
+    (string "-O" (opt opts :optimize bto))])
 
 (defn entry-name
   "Name of symbol that enters static compilation of a module."

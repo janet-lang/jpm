@@ -92,7 +92,6 @@
       :modext (if iswin ".dll" ".so")
       :modpath modpath
       :nocolor false
-      :optimize 2
       :pkglist pkglist
       :silent false
       :statext (if iswin ".static.lib" ".a")
