@@ -55,7 +55,7 @@
   (def statext (dyn:statext))
 
   # Make dynamic module
-  (def lname (string "build/" name modext))
+  (def lname (string (find-build-dir) name modext))
 
   # Get objects to build with
   (var has-cpp false)
@@ -92,7 +92,7 @@
   (rule metaname []
         (print "generating meta file " metaname "...")
         (flush)
-        (os/mkdir "build")
+        (os/mkdir (find-build-dir))
         (spit metaname (string/format
                          "# Metadata for static library %s\n\n%.20p"
                          (string name statext)
@@ -106,7 +106,7 @@
 
   # Make static module
   (unless (dyn :nostatic)
-    (def sname (string "build/" name statext))
+    (def sname (string (find-build-dir) name statext))
     (def opts (merge @{:entry-name ename} opts))
     (def sobjext ".static.o")
     (def sjobjext ".janet.static.o")
@@ -179,7 +179,7 @@
           :cflags cflags :lflags lflags :deps deps :ldflags ldflags
           :no-compile no-compile :no-core no-core}]
   (def name (if (= (os/which) :windows) (string name ".exe") name))
-  (def dest (string "build/" name))
+  (def dest (string (find-build-dir) name))
   (create-executable @{:cflags cflags :lflags lflags :ldflags ldflags :no-compile no-compile} entry dest no-core)
   (if no-compile
     (let [cdest (string dest ".c")]
@@ -239,7 +239,7 @@
   [&keys opts]
   (def entry (opts :entry))
   (def name (opts :name))
-  (def iname (string "build/" name ".jimage"))
+  (def iname (string (find-build-dir) name ".jimage"))
   (rule iname (or (opts :deps) [])
         (create-dirs iname)
         (spit iname (make-image (require entry))))
@@ -257,10 +257,13 @@
   "Run tests on a project in the current directory. The tests will
   be run in the environment dictated by (dyn :modpath)."
   [&opt root-directory build-directory]
+  (def bd (or build-directory (find-build-dir)))
   (def monkey-patch
     (string
       `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
-      (array/push module/paths ["./build/:all:`
+      (array/push module/paths ["`
+      bd
+      `:all:`
       (dyn:modext)
       `" :native check-is-dep])`))
   (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
@@ -281,7 +284,7 @@
                   (++ errors-found)
                   (eprintf "non-zero exit code in %s: %d" ndir result)))
         :directory (dodir ndir bdir))))
-  (dodir (or root-directory "test") (or build-directory "build"))
+  (dodir (or root-directory "test") bd)
   (if (zero? errors-found)
     (print "All tests passed.")
     (do
@@ -343,9 +346,10 @@
         (uninstall (meta :name)))
 
   (task "clean" []
-        (when (os/stat "./build" :mode)
-          (rm "build")
-          (print "Deleted build directory.")
+        (def bd (find-build-dir))
+        (when (os/stat bd :mode)
+          (rm bd)
+          (print "Deleted build directory " bd)
           (flush)))
 
   (task "test" ["build"]

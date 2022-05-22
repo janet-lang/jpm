@@ -30,7 +30,7 @@
        (string/replace-all "\\" "___")
        (string/replace-all "/" "___")
        (string/replace-all from-ext to-ext)
-       (string "build/")))
+       (string (find-build-dir))))
 
 (defn make-define
   "Generate strings for adding custom defines to the compiler."

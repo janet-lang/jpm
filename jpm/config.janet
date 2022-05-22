@@ -14,7 +14,7 @@
     (error (string "option :" key " not set")))
   ret)
 
-(def config-parsers 
+(def config-parsers
   "A table of all of the dynamic config bindings to parsers."
   @{})
 
@@ -104,7 +104,7 @@
     :string-array string-array?
     :boolean boolean-or-nil?})
 
-(defmacro defdyn
+(defmacro defconf
   "Define a function that wraps (dyn :keyword). This will
   allow use of dynamic bindings with static runtime checks."
   [kw &opt parser docs & meta]
@@ -178,7 +178,8 @@
   (setwhen :modpath "JANET_MODPATH")
   (setwhen :headerpath "JANET_HEADERPATH")
   (setwhen :libpath "JANET_LIBPATH")
-  (setwhen :binpath "JANET_BINPATH"))
+  (setwhen :binpath "JANET_BINPATH")
+  (setwhen :buildpath "JANET_BUILDPATH"))
 
 (def shorthand-mapping
   "Map some single characters to long options."
@@ -190,49 +191,50 @@
    "t" :test})
 
 # All jpm settings.
-(defdyn :binpath :string "The directory to install executable binaries and scripts to")
-(defdyn :config-file :string-opt "A config file to load to load settings from")
-(defdyn :gitpath :string "The path or command name of git used by jpm")
-(defdyn :tarpath :string "The path or command name of tar used by jpm")
-(defdyn :curlpath :string "The path or command name of curl used by jpm")
-(defdyn :headerpath :string "Directory containing Janet headers")
-(defdyn :manpath :string-opt "Directory to install man pages to")
-(defdyn :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
-(defdyn :libpath :string
+(defconf :binpath :string "The directory to install executable binaries and scripts to")
+(defconf :config-file :string-opt "A config file to load to load settings from")
+(defconf :gitpath :string "The path or command name of git used by jpm")
+(defconf :tarpath :string "The path or command name of tar used by jpm")
+(defconf :curlpath :string "The path or command name of curl used by jpm")
+(defconf :headerpath :string "Directory containing Janet headers")
+(defconf :manpath :string-opt "Directory to install man pages to")
+(defconf :janet :string "The path or command name of the Janet binary used when spawning janet subprocesses")
+(defconf :libpath :string
   "The directory that contains janet libraries for standalone binaries and other native artifacts")
-(defdyn :modpath :string-opt "The directory tree to install packages to")
-(defdyn :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
-(defdyn :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
-(defdyn :offline :boolean "Do not download remote repositories when installing packages")
-(defdyn :update-pkgs :boolean "Update package listing before doing anything.")
+(defconf :modpath :string-opt "The directory tree to install packages to")
+(defconf :optimize :int "The default optimization level to use for C/C++ compilation if otherwise unspecified")
+(defconf :pkglist :string-opt "The package listing bundle to use for mapping short package names to full URLs.")
+(defconf :offline :boolean "Do not download remote repositories when installing packages")
+(defconf :update-pkgs :boolean "Update package listing before doing anything.")
+(defconf :buildpath :string-opt "The path to output intermediate files and build outputs to. Default is build/")
 
 # Settings that probably shouldn't be set from the command line.
-(defdyn :ar :string "The archiver used to generate static C/C++ libraries")
-(defdyn :c++ :string "The C++ compiler to use for natives")
-(defdyn :c++-link :string "The C++ linker to use for natives - on posix, should be the same as the compiler")
-(defdyn :cc :string "The C compiler to use for natives")
-(defdyn :cc-link :string "The C linker to use for natives - on posix, should be the same as the compiler")
-(defdyn :cflags :string-array "List of flags to pass when compiling .c files to object files")
-(defdyn :cppflags :string-array "List of flags to pass when compiling .cpp files to object files")
-(defdyn :cflags-verbose :string-array "List of extra flags to pass when compiling in verbose mode")
-(defdyn :dynamic-cflags :string-array "List of flags to pass only when compiler shared objects")
-(defdyn :dynamic-lflags :string-array "List of flags to pass when linking shared objects")
-(defdyn :is-msvc :boolean "Switch to turn on if using MSVC compiler instead of POSIX compliant compiler")
-(defdyn :ldflags :string-array "Linker flags for OS libraries needed when compiling C/C++ artifacts")
-(defdyn :lflags :string-array "Non-library linker flags when compiling C/C++ artifacts")
-(defdyn :modext :string "File extension for shared objects")
-(defdyn :statext :string "File extension for static libraries")
-(defdyn :use-batch-shell :boolean "Switch to turn on if using the Batch shell on windows instead of POSIX shell")
-(defdyn :janet-lflags :string-array "Link flags to pass when linking to libjanet")
-(defdyn :janet-cflags :string-array "Compiler flags to pass when linking to libjanet")
+(defconf :ar :string "The archiver used to generate static C/C++ libraries")
+(defconf :c++ :string "The C++ compiler to use for natives")
+(defconf :c++-link :string "The C++ linker to use for natives - on posix, should be the same as the compiler")
+(defconf :cc :string "The C compiler to use for natives")
+(defconf :cc-link :string "The C linker to use for natives - on posix, should be the same as the compiler")
+(defconf :cflags :string-array "List of flags to pass when compiling .c files to object files")
+(defconf :cppflags :string-array "List of flags to pass when compiling .cpp files to object files")
+(defconf :cflags-verbose :string-array "List of extra flags to pass when compiling in verbose mode")
+(defconf :dynamic-cflags :string-array "List of flags to pass only when compiler shared objects")
+(defconf :dynamic-lflags :string-array "List of flags to pass when linking shared objects")
+(defconf :is-msvc :boolean "Switch to turn on if using MSVC compiler instead of POSIX compliant compiler")
+(defconf :ldflags :string-array "Linker flags for OS libraries needed when compiling C/C++ artifacts")
+(defconf :lflags :string-array "Non-library linker flags when compiling C/C++ artifacts")
+(defconf :modext :string "File extension for shared objects")
+(defconf :statext :string "File extension for static libraries")
+(defconf :use-batch-shell :boolean "Switch to turn on if using the Batch shell on windows instead of POSIX shell")
+(defconf :janet-lflags :string-array "Link flags to pass when linking to libjanet")
+(defconf :janet-cflags :string-array "Compiler flags to pass when linking to libjanet")
 
 # Settings that should probably only be set from the command line
-(defdyn :auto-shebang :boolean "Automatically add a shebang line to installed janet scripts")
-(defdyn :silent :boolean "Show less output than usually and silence output from subprocesses")
-(defdyn :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
-(defdyn :workers :int-opt "The number of parallel workers to build with")
-(defdyn :nocolor :boolean "Disables color in the debug repl")
-(defdyn :test :boolean "Enable testing when installing.")
-(defdyn :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
-(defdyn :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
-(defdyn :dest-dir :string-opt "Prefix to add to installed files. Useful for bootstrapping.")
+(defconf :auto-shebang :boolean "Automatically add a shebang line to installed janet scripts")
+(defconf :silent :boolean "Show less output than usually and silence output from subprocesses")
+(defconf :verbose :boolean "Show more ouput than usual and turn on warn flags in compilers")
+(defconf :workers :int-opt "The number of parallel workers to build with")
+(defconf :nocolor :boolean "Disables color in the debug repl")
+(defconf :test :boolean "Enable testing when installing.")
+(defconf :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
+(defconf :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
+(defconf :dest-dir :string-opt "Prefix to add to installed files. Useful for bootstrapping.")

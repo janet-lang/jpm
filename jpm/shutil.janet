@@ -10,6 +10,14 @@
   []
   (dyn :use-batch-shell))
 
+(defn find-build-dir
+  "Gets the build directory to output files to."
+  []
+  (let [x (dyn:buildpath "build/")]
+    (if (string/has-suffix? "/" x)
+      x
+      (string x "/"))))
+
 (defn find-manifest-dir
   "Get the path to the directory containing manifests for installed
   packages."

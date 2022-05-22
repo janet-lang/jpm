@@ -97,7 +97,6 @@
             Remove any generated files or artifacts.
 
         test
-
             Run tests. Tests should be .janet files in the test/ directory
             relative to project.janet.
 

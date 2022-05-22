@@ -1,6 +1,6 @@
 .TH JPM 1
 .SH NAME
-jpm \- the Janet Project Manager, a build tool for Janet 
+jpm \- the Janet Project Manager, a build tool for Janet
 .SH SYNOPSIS
 .B jpm
 [\fB\-\-flag ...\fR]
@@ -169,7 +169,7 @@ variable.
 .RS
 Similar to JANET_HEADERPATH, this path is where jpm will look for
 libjanet.a for creating standalone executables. This does not need to be
-set on a normal install. 
+set on a normal install.
 If not provided, this will default to <jpm script location>/../lib.
 The --libpath=/some/path option will override this variable.
 .RE
@@ -180,6 +180,14 @@ The directory where jpm will install binary scripts and executables to.
 Defaults to
 (dyn :syspath)/bin
 The --binpath=/some/path will override this variable.
+.RE
+
+.B JANET_BUILDPATH
+.RS
+The directory where jpm will put intermediate files, object code, and compiled executables.
+Defaults to ./build
+The --buildpath=/some/path will override this variable. You should make that directories above this
+directory exist before building.
 .RE
 
 .B JANET_PKGLIST
