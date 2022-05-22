@@ -253,19 +253,30 @@
   (when-let [mp (dyn :manpath)]
     (install-rule page mp)))
 
+(defn- make-monkeypatch
+  [build-dir]
+  (string/format
+    `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
+    (array/push module/paths [%v :native check-is-dep])`
+    (string build-dir ":all:" (dyn:modext))))
+
+(defn run-repl
+  "Run a repl that has the same environment as the test environment."
+  []
+  (def bd (find-build-dir))
+  (def monkey-patch (make-monkeypatch bd))
+  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  (os/execute
+    [(dyn:janet) "-r" "-e" monkey-patch]
+    :ep
+    environ))
+
 (defn run-tests
   "Run tests on a project in the current directory. The tests will
   be run in the environment dictated by (dyn :modpath)."
   [&opt root-directory build-directory]
   (def bd (or build-directory (find-build-dir)))
-  (def monkey-patch
-    (string
-      `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
-      (array/push module/paths ["`
-      bd
-      `:all:`
-      (dyn:modext)
-      `" :native check-is-dep])`))
+  (def monkey-patch (make-monkeypatch bd))
   (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
   (var errors-found 0)
   (defn dodir

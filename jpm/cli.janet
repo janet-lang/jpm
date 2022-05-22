@@ -23,6 +23,7 @@
   ``
   [args]
   (read-env-variables)
+  (load-options)
   (def cmdbuf @[])
   (var flags-done false)
   (each a args

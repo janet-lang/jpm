@@ -276,3 +276,28 @@
   [target]
   (build-rules (dyn :rules) [target] (dyn :workers)))
 
+(defn out-of-tree-config
+  "Create an out of tree build configuration. This lets a user have a debug or release build, as well
+  as other configuration on a one time basis. This works by creating a new directory with
+  a project.janet that loads in the original project.janet file with some settings changed."
+  [path &opt options]
+  (def current (abspath (os/cwd)))
+  (def options (merge-into @{} options))
+  (def new-build-path (string path "/build/"))
+  (put options :buildpath new-build-path)
+  (def dest (string path "/project.janet"))
+  (def odest (string path "/options.janet"))
+  (print "creating out of tree build at " path)
+  (create-dirs dest)
+  (spit odest
+    (string/join
+      (map |(string/format "(setdyn %v %j)" ($ 0) ($ 1))
+           (pairs options))
+      "\n"))
+  (spit dest
+    (string/format
+      ```
+      (os/cd %v)
+      (import-rules "./project.janet")
+      ```
+      current)))

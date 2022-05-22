@@ -35,6 +35,13 @@ Builds all artifacts specified in the project.janet file in the current director
 be created in the ./build/ directory.
 
 .TP
+.BR configure [\fBpath\fR]
+Create a directory for out-of-tree builds, and also set project options. While jpm does not
+require an explicit configure step, this can be used to avoid needing to set the same options
+repeatedly. Out of tree builds are also a convenient way to have multiple configurations at the
+same time, such as a relase build and a debug build.
+
+.TP
 .BR install\ [\fBrepo...\fR]
 When run with no arguments, installs all installable artifacts in the current project to
 the current JANET_MODPATH for modules and JANET_BINPATH for executables and scripts. Can also
@@ -121,6 +128,11 @@ Create a standalone, statically linked executable from a Janet source file that 
 The main function is the entry point of the program and will receive command line arguments
 as function arguments. The entry file can import other modules, including native C modules, and
 jpm will attempt to include the dependencies into the generated executable.
+
+.TP
+.BR repl
+Run a repl in the same environment as the test environment. Allows
+you to use built natives without installing them.
 
 .TP
 .BR debug-repl

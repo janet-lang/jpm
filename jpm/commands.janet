@@ -91,14 +91,18 @@
     Unprivileged project subcommands:
 
         build
-            Build all artifacts.
+            Build all artifacts in the build/ directory, or the value specified in --buildpath.
+
+        configure path
+            Create a directory for out-of-tree builds, and also set project options. 
 
         clean
             Remove any generated files or artifacts.
 
         test
             Run tests. Tests should be .janet files in the test/ directory
-            relative to project.janet.
+            relative to project.janet. Will patch the module paths to load
+            built native code without installing it.
 
         run rule
             Run a rule. Can also run custom rules added via `(phony "task"
@@ -121,6 +125,10 @@
             max depth to print. Without these options, all rules will
             print their full dependency tree.
 
+        repl
+            Run a repl in the same environment as the test environment. Allows
+            you to use built natives without installing them.
+
         debug-repl
             Run a repl in the context of the current project.janet
             file. This lets you run rules and otherwise debug the current
@@ -131,9 +139,16 @@
     ```)
 
   (print)
-  (print "Keyword arguments:")
+  (print "Global options:")
   (each k (sort (keys config-docs))
-    (print "  --" k " : " (get config-docs k)))
+    (when (builtin-configs k)
+      (print "  --" k " : " (get config-docs k))))
+  (unless (= (length config-docs) (length builtin-configs))
+    (print)
+    (print "Project options:")
+    (each k (sort (keys config-docs))
+      (unless (builtin-configs k)
+        (print "  --" k " : " (get config-docs k)))))
   (print))
 
 (defn- local-rule
@@ -289,6 +304,15 @@
   []
   (set-tree "jpm_tree"))
 
+(defn configure
+  "Setup an out-of-tree build with certain configuration options."
+  [path & settings]
+  (def opts @{})
+  (def module (require-jpm "./project.janet" true))
+  (eachk key config-set
+    (put opts key (dyn key)))
+  (out-of-tree-config path opts))
+
 (def subcommands
   {"build" build
    "clean" clean
@@ -304,6 +328,7 @@
    "list-pkgs" list-pkgs
    "clear-cache" clear-cache
    "clear-manifest" clear-manifest
+   "repl" run-repl
    "run" local-rule
    "rules" list-rules
    "update-pkgs" update-pkgs
@@ -311,6 +336,7 @@
    "make-lockfile" make-lockfile
    "load-lockfile" load-lockfile
    "quickbin" quickbin
+   "configure" configure
    "exec" shell
    "janet" (fn [& args] (shell (dyn :executable) ;args))
    "save-config" save-config})

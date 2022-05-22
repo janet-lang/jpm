@@ -14,6 +14,8 @@
     (error (string "option :" key " not set")))
   ret)
 
+(var- builtins-loaded false)
+
 (def config-parsers
   "A table of all of the dynamic config bindings to parsers."
   @{})
@@ -28,6 +30,10 @@
 
 (def config-set
   "Listing of all config dyns."
+  @{})
+
+(def builtin-configs
+  "Table of all built-in options, as opposed to project deifned options."
   @{})
 
 #
@@ -69,8 +75,10 @@
   "A table of all of the option parsers."
   @{:int parse-integer
     :int-opt parse-integer
+    :int? parse-integer
     :string parse-string
     :string-opt parse-string
+    :string? parse-string
     :string-array parse-string-array
     :boolean parse-boolean})
 
@@ -99,8 +107,10 @@
   "A table of all of the option checkers"
   @{:int int?
     :int-opt int-or-nil?
+    :int? int-or-nil?
     :string string?
     :string-opt string-or-nil?
+    :string? string-or-nil?
     :string-array string-array?
     :boolean boolean-or-nil?})
 
@@ -112,6 +122,7 @@
   (put config-checkers kw (get config-checker-types parser))
   (put config-docs kw docs)
   (put config-set kw parser)
+  (unless builtins-loaded (put builtin-configs kw true))
   (let [s (symbol "dyn:" kw)]
     ~(defn ,s ,;meta [&opt dflt]
        (def x (,dyn ,kw dflt))
@@ -163,6 +174,26 @@
   "Load the default configuration."
   [&opt override]
   (load-config default-config/config override))
+
+(def- mod-config (curenv))
+
+(defn load-options
+  "Load a file that contains config options that can be set. If no such
+  file exists, then do nothing."
+  [&opt path]
+  (default path "./options.janet")
+  (unless (os/stat path :mode)
+    (break))
+  (def env (make-env))
+  (loop [k :keys mod-config :when (symbol? k)
+         :let [x (get mod-config k)]]
+    (unless (get x :private)
+      (put env k x)))
+  (dofile path :env env)
+  # inherit dyns
+  (loop [k :keys env :when (keyword? k)]
+    (setdyn k (get env k)))
+  nil)
 
 (defn- setwhen [k envvar]
   (when-let [v (os/getenv envvar)]
@@ -238,3 +269,5 @@
 (defconf :local :boolean "Switch to use a local tree ./jpm_tree instead of the config specified tree.")
 (defconf :tree :string-opt "Switch to use a custom tree instead of the config specified tree.")
 (defconf :dest-dir :string-opt "Prefix to add to installed files. Useful for bootstrapping.")
+
+(set builtins-loaded true)
