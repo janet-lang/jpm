@@ -1,6 +1,7 @@
 (declare-project
   :name "jpm"
   :description "JPM is the Janet Project Manager tool."
+  :url "https://github.com/janet-lang/jpm"
   :version "0.0.3")
 
 (declare-source
