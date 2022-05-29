@@ -327,7 +327,7 @@
   be the first declaration in a project.janet file.
   Also sets up basic task targets like clean, build, test, etc."
   [&keys meta]
-  (setdyn :project meta)
+  (setdyn :project (struct/to-table meta))
 
   (def installed-files @[])
   (def manifests (find-manifest-dir))

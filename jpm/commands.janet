@@ -162,7 +162,12 @@
   (print "modpath:    " (dyn:modpath))
   (print "libpath:    " (dyn:libpath))
   (print "headerpath: " (dyn:headerpath))
-  (print "syspath:    " (dyn :syspath)))
+  (print "syspath:    " (dyn :syspath))
+  (print "manpath:    " (dyn :manpath))
+  (print "buildpath:  " (dyn :buildpath "build/"))
+  (print "gitpath:    " (dyn :gitpath))
+  (print "tarpath:    " (dyn :tarpath))
+  (print "curlpath:   " (dyn :curlpath)))
 
 (defn build
   []
