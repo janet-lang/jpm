@@ -153,7 +153,7 @@
 
 (defn- local-rule
   [rule &opt no-deps]
-  (import-rules "./project.janet" no-deps)
+  (import-rules "./project.janet" @{:jpm-no-deps no-deps})
   (do-rule rule))
 
 (defn show-paths
@@ -196,7 +196,7 @@
 
 (defn deps
   []
-  (def env (import-rules "./project.janet" true))
+  (def env (import-rules "./project.janet" @{:jpm-no-deps true}))
   (def meta (get env :project))
   (if-let [deps (meta :dependencies)]
     (each dep deps
