@@ -31,8 +31,7 @@
      mod-cc
      mod-cgen
      mod-pm
-     mod-make-config
-     (or base-env {})])
+     mod-make-config])
   (def env (make-env))
   (loop [e :in envs-to-add
          k :keys e :when (symbol? k)
@@ -43,6 +42,8 @@
   (loop [k :keys currenv :when (keyword? k)]
     (put env k (currenv k)))
   # For compatibility reasons
+  (when base-env
+    (merge-into env base-env))
   (put env 'default-cflags @{:value (dyn:cflags)})
   (put env 'default-lflags @{:value (dyn:lflags)})
   (put env 'default-ldflags @{:value (dyn:ldflags)})
@@ -53,7 +54,7 @@
 (defn require-jpm
   "Require a jpm file project file. This is different from a normal require
   in that code is loaded in the jpm environment."
-  [path &opt no-deps base-env]
+  [path &opt base-env]
   (unless (os/stat path :mode)
     (error (string "cannot open " path)))
   (def env (make-jpm-env base-env))
@@ -64,7 +65,8 @@
   "Load the metadata from a project.janet file without doing a full evaluation
   of the project.janet file. Returns a struct with the project metadata. Raises
   an error if no metadata found."
-  [path]
+  [&opt path]
+  (default path "./project.janet")
   (def src (slurp path))
   (def p (parser/new))
   (parser/consume p src)
@@ -82,8 +84,8 @@
 (defn import-rules
   "Import another file that defines more rules. This ruleset
   is merged into the current ruleset."
-  [path &opt no-deps base-env]
-  (def env (require-jpm path no-deps base-env))
+  [path &opt base-env]
+  (def env (require-jpm path base-env))
   (when-let [rules (get env :rules)] (merge-into (getrules) rules))
   (when-let [project (get env :project)]
     (setdyn :project (merge-into (dyn :project @{}) project)))
@@ -224,7 +226,7 @@
                 :headerpath (abspath (dyn:headerpath))
                 :libpath (abspath (dyn:libpath))
                 :binpath (abspath (dyn:binpath))]
-      (def dep-env (require-jpm "./project.janet" true))
+      (def dep-env (require-jpm "./project.janet" @{:jpm-no-deps true}))
       (unless no-deps
         (def meta (dep-env  :project))
         (if-let [deps (meta :dependencies)]

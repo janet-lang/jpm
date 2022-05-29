@@ -202,3 +202,13 @@
   to make it into a path segment."
   [repo]
   (get (peg/match filepath-replacer repo) 0))
+
+(defn basename
+  "Get the filename of a path without any leading directory components."
+  [path]
+  (last (peg/match path-splitter path)))
+
+(defn dirname
+  "Get the directory of a file without the filename."
+  [path]
+  (string/join (slice (peg/match path-splitter path) 0 -2) "/"))

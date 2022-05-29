@@ -54,7 +54,7 @@
   [&keys opts]
   (def sources (opts :source))
   (def name (opts :name))
-  (def path (dyn:modpath))
+  (def path (string (dyn:modpath) "/" (dirname name)))
   (def declare-targets @{})
 
   (def modext (dyn:modext))
@@ -99,6 +99,7 @@
         (print "generating meta file " metaname "...")
         (flush)
         (os/mkdir (find-build-dir))
+        (create-dirs metaname)
         (spit metaname (string/format
                          "# Metadata for static library %s\n\n%.20p"
                          (string name statext)
@@ -108,7 +109,7 @@
                           :lflags ~',(opts :lflags)})))
   (add-dep "build" metaname)
   (put declare-targets :meta metaname)
-  (install-rule metaname path)
+  (install-rule metaname (dyn:modpath))
 
   # Make static module
   (unless (dyn :nostatic)
