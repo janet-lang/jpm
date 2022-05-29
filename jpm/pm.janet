@@ -60,6 +60,25 @@
   (dofile path :env env :exit true)
   env)
 
+(defn load-project-meta
+  "Load the metadata from a project.janet file without doing a full evaluation
+  of the project.janet file. Returns a struct with the project metadata. Raises
+  an error if no metadata found."
+  [path]
+  (def src (slurp path))
+  (def p (parser/new))
+  (parser/consume p src)
+  (parser/eof p)
+  (var ret nil)
+  (while (parser/has-more p)
+    (if ret (break))
+    (def item (parser/produce p))
+    (match item
+      ['declare-project & rest] (set ret (struct ;rest))))
+  (unless ret
+    (errorf "no metadata found in %s" path))
+  ret)
+
 (defn import-rules
   "Import another file that defines more rules. This ruleset
   is merged into the current ruleset."
