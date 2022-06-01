@@ -70,7 +70,7 @@
   # Make sure loaded project files and rules execute correctly.
   (unless (dyn :janet)
     (setdyn :janet (dyn :executable)))
-  (put root-env :syspath (dyn:modpath))
+  (put root-env :syspath (dyn :modpath))
 
   # Update packages if -u flag given
   (if (dyn :update-pkgs)
