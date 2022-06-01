@@ -158,12 +158,13 @@
 
 (defn show-paths
   []
+  (print "tree:       " (dyn :tree))
   (print "binpath:    " (dyn:binpath))
   (print "modpath:    " (dyn:modpath))
-  (print "libpath:    " (dyn:libpath))
-  (print "headerpath: " (dyn:headerpath))
   (print "syspath:    " (dyn :syspath))
   (print "manpath:    " (dyn :manpath))
+  (print "libpath:    " (dyn:libpath))
+  (print "headerpath: " (dyn:headerpath))
   (print "buildpath:  " (dyn :buildpath "build/"))
   (print "gitpath:    " (dyn :gitpath))
   (print "tarpath:    " (dyn :tarpath))

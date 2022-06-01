@@ -219,7 +219,9 @@
   (setwhen :headerpath "JANET_HEADERPATH")
   (setwhen :libpath "JANET_LIBPATH")
   (setwhen :binpath "JANET_BINPATH")
-  (setwhen :buildpath "JANET_BUILDPATH"))
+  (setwhen :buildpath "JANET_BUILDPATH")
+  (setwhen :manpath "JANET_MANPATH")
+  (setwhen :tree "JANET_TREE"))
 
 (def shorthand-mapping
   "Map some single characters to long options."
