@@ -267,7 +267,7 @@
       (error (string/format "could not resolve package order for: %j"
                             (filter (complement resolved) (map |(or ($ :url) ($ :repo)) packages))))))
   # Write to file, manual format for better diffs.
-  (with [f (file/open filename :w)]
+  (with [f (file/open filename :wn)]
     (with-dyns [:out f]
       (prin "@[")
       (eachk i ordered-packages

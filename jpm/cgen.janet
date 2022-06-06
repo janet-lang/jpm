@@ -445,7 +445,7 @@
         (array/push c (:produce p)))
       (defn tmpl [&opt rp]
         (default rp (string/slice path 0 -4))
-        (with [o (file/open rp :wb)]
+        (with [o (file/open rp :wbn)]
           (with-dyns [:out o] (print-ir c))))
       @{'render @{:doc "Main template function."
                   :value tmpl}})))

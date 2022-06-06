@@ -130,7 +130,7 @@
 (defn create-buffer-c-impl
   [bytes dest name]
   (create-dirs dest)
-  (def out (file/open dest :w))
+  (def out (file/open dest :wn))
   (def chunks (seq [b :in bytes] (string b)))
   (file/write out
               "#include <janet.h>\n"
@@ -148,7 +148,7 @@
         (print "generating " dest "...")
         (flush)
         (create-dirs dest)
-        (with [f (file/open source :r)]
+        (with [f (file/open source :rn)]
           (create-buffer-c-impl (:read f :all) dest name))))
 
 (defn modpath-to-meta
