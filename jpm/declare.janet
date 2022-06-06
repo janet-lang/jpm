@@ -227,6 +227,7 @@
                         first-line (if hardcode second-line) rest)))
             (def destpath (string (dyn :dest-dir "") path))
             (create-dirs destpath)
+            (print "installing " main " to " destpath)
             (spit destpath contents)
             (unless (= :windows (os/which)) (shell "chmod" "+x" destpath))))
     (install-rule main binpath))
@@ -362,10 +363,12 @@
             (do
               (if-let [shallow (dyn :shallow)]
                 (put man :shallow shallow))
-              (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
-                (put man :url (if-not (empty? x) x)))
-              (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
-                (put man :tag (if-not (empty? x) x))))
+              (protect
+                (if-let [x (exec-slurp (dyn:gitpath) "remote" "get-url" "origin")]
+                  (put man :url (if-not (empty? x) x))))
+              (protect
+                (if-let [x (exec-slurp (dyn:gitpath) "rev-parse" "HEAD")]
+                  (put man :tag (if-not (empty? x) x)))))
             :tar
             (do
               (put man :url (slurp ".bundle-tar-url")))
