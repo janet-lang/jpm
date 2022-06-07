@@ -218,7 +218,7 @@
       (array/push (dyn :installed-files) path)
       (task "install" []
             (def contents
-              (with [f (file/open main :n)]
+              (with [f (file/open main :rbn)]
                 (def first-line (:read f :line))
                 (def second-line (string/format "(put root-env :syspath %v)\n" syspath))
                 (def rest (:read f :all))
