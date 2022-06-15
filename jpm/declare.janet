@@ -109,7 +109,7 @@
                           :lflags ~',(opts :lflags)})))
   (add-dep "build" metaname)
   (put declare-targets :meta metaname)
-  (install-rule metaname (dyn:modpath))
+  (install-rule metaname path)
 
   # Make static module
   (unless (dyn :nostatic)
