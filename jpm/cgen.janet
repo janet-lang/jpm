@@ -446,7 +446,7 @@
       (defn tmpl [&opt rp]
         (default rp (string/slice path 0 -4))
         (with [o (file/open rp :wbn)]
-          (with-dyns [:out o] (print-ir c))))
+          (with-dyns [:out o :current-file path] (print-ir c))))
       @{'render @{:doc "Main template function."
                   :value tmpl}})))
 
