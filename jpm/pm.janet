@@ -298,6 +298,15 @@
   [target]
   (build-rules (dyn :rules) [target] (dyn :workers)))
 
+(defn update-installed
+  "Update all previously installed packages to their latest versions."
+  []
+  (each p (os/dir (find-manifest-dir))
+    (def bundle-data (parse (slurp (string (find-manifest-dir) "/" p))))
+    (def new-bundle (merge-into @{} bundle-data))
+    (put new-bundle :tag nil)
+    (bundle-install new-bundle true)))
+
 (defn out-of-tree-config
   "Create an out of tree build configuration. This lets a user have a debug or release build, as well
   as other configuration on a one time basis. This works by creating a new directory with

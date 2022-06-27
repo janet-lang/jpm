@@ -44,6 +44,10 @@
             that git repository, assuming that the repository is a jpm
             project. If not, build and install the current project.
 
+        update-installed
+            Reinstall all installed packages. For packages that are not pinned
+            to a specific version, this will get that latest version of packages.
+
         uninstall (module)...
             Uninstall a module. If no module is given, uninstall the
             module defined by the current directory.
@@ -339,6 +343,7 @@
    "run" local-rule
    "rules" list-rules
    "update-pkgs" update-pkgs
+   "update-installed" update-installed
    "uninstall" uninstall-cmd
    "make-lockfile" make-lockfile
    "load-lockfile" load-lockfile
