@@ -90,6 +90,11 @@
           (print "invalid command " (first cmdbuf))
           (commands/help)))))
 
+(defmacro jpm
+  "A Macro User Interface for jpm to be used from a repl in a way similar to the command line."
+  [& argv]
+  ~(,run ,;(map |(if (bytes? $) (string $) $) argv)))
+
 (defn main
   "Script entry."
   [& argv]
