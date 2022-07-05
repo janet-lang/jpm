@@ -60,7 +60,7 @@
       2))
   (def debug-syms
     (if (or (= bt "develop") (= bt "debug"))
-      ["-g"]
+      (if (dyn :is-msvc) ["/DEBUG"] ["-g"])
       []))
   @[;(opt opts flags)
     ;(if (dyn:verbose) (dyn:cflags-verbose) [])
