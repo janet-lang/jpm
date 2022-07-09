@@ -235,7 +235,7 @@
   (when (dyn:use-batch-shell)
     (def name (last (peg/match path-splitter main)))
     (def fullname (string binpath "/" name))
-    (def bat (string "@echo off\r\njanet \"" fullname "\" %*"))
+    (def bat (string "@echo off\r\ngoto #_undefined_# 2>NUL || title %COMSPEC% & janet \"" fullname "\" %*"))
     (def newname (string binpath "/" name ".bat"))
     (array/push (dyn :installed-files) newname)
     (task "install" []
