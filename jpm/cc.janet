@@ -53,11 +53,17 @@
   (def flags (if (= compiler :cc) :cflags :cppflags))
   (def bt (dyn:build-type "release"))
   (def bto
-    (case bt
-      "release" 2
-      "debug" 0
-      "develop" 2
-      2))
+    (opt opts
+         :optimize
+         (case bt
+           "release" 2
+           "debug" 0
+           "develop" 2
+           2)))
+  (def oflag
+    (if (dyn :is-msvc)
+      (case bto 0 "/Od" 1 "/O1" 2 "/O2" "/O2")
+      (case bto 0 "-O0" 1 "-O1" 2 "-02" "-O3")))
   (def debug-syms
     (if (or (= bt "develop") (= bt "debug"))
       (if (dyn :is-msvc) ["/DEBUG"] ["-g"])
@@ -67,7 +73,7 @@
     ;debug-syms
     (string "-I" (dyn:headerpath))
     (string "-I" (dyn:modpath))
-    (string "-O" (opt opts :optimize bto))])
+    oflag])
 
 (defn entry-name
   "Name of symbol that enters static compilation of a module."
