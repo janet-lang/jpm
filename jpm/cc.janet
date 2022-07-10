@@ -63,7 +63,7 @@
   (def oflag
     (if (dyn :is-msvc)
       (case bto 0 "/Od" 1 "/O1" 2 "/O2" "/O2")
-      (case bto 0 "-O0" 1 "-O1" 2 "-02" "-O3")))
+      (case bto 0 "-O0" 1 "-O1" 2 "-O2" "-O3")))
   (def debug-syms
     (if (or (= bt "develop") (= bt "debug"))
       (if (dyn :is-msvc) ["/DEBUG"] ["-g"])
