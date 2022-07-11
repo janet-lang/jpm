@@ -8,6 +8,7 @@
 (use ./shutil)
 (use ./cc)
 (use ./pm)
+(use ./scaffold)
 
 (defn help
   []
@@ -36,6 +37,20 @@
 
         quickbin entry executable
             Create an executable from a janet script with a main function.
+
+        exec
+            Run any shell command with JANET_PATH set to the correct
+            module tree.
+
+        janet
+            Run the Janet interpreter with JANET_PATH set to the correct
+            module tree.
+
+        new-project name
+            Create a new Janet project in a directory `name`.
+
+        new-c-project name
+            Create a new C+Janet project in a directory `name`.
 
     Privileged global subcommands:
 
@@ -72,14 +87,6 @@
         update-pkgs
             Update the current package listing from the remote git
             repository selected.
-
-        exec
-            Run any shell command with JANET_PATH set to the correct
-            module tree.
-
-        janet
-            Run the Janet interpreter with JANET_PATH set to the correct
-            module tree.
 
     Privileged project subcommands:
 
@@ -324,6 +331,16 @@
   (default path (string "_" (dyn :build-type "out")))
   (out-of-tree-config path opts))
 
+(defn new-project
+  "Create a new project"
+  [name]
+  (scaffold-project name {:c false}))
+
+(defn new-c-project
+  "Create a new C project"
+  [name]
+  (scaffold-project name {:c true}))
+
 (def subcommands
   {"build" build
    "clean" clean
@@ -350,5 +367,7 @@
    "quickbin" quickbin
    "configure" configure
    "exec" shell
+   "new-project" new-project
+   "new-c-project" new-c-project
    "janet" (fn [& args] (shell (dyn :executable) ;args))
    "save-config" save-config})

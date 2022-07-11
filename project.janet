@@ -17,6 +17,7 @@
            "jpm/pm.janet"
            "jpm/rules.janet"
            "jpm/shutil.janet"
+           "jpm/scaffold.janet"
            "jpm/cgen.janet"])
 
 (declare-manpage "jpm.1")

@@ -10,5 +10,6 @@
 (import ./rules :export true)
 (import ./shutil :export true)
 (import ./make-config :export true)
+(import ./scaffold :export true)
 
 # (import ./cli :export true) - we don't need cli/ when using programmatically
