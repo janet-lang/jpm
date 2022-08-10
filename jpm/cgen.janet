@@ -133,25 +133,25 @@
     (if-not alias (prin ")")))
 
   (setfn emit-type
-    [definition &opt alias]
-    (match definition
-      (d (bytes? d)) (do (prin d) (if alias (prin " " alias)))
-      (t (tuple? t))
-      (match t
-        ['struct & body] (emit-struct-def nil body alias)
-        ['named-struct n & body] (emit-struct-def n body alias)
-        ['enum & body] (emit-enum-def nil body alias)
-        ['named-enum n & body] (emit-enum-def n body alias)
-        ['union & body] (emit-union-def nil body alias)
-        ['named-union n & body] (emit-union-def n body alias)
-        ['fn n & body] (emit-fn-pointer-type n body alias)
-        ['ptr val] (emit-ptr-type val alias)
-        ['* val] (emit-ptr-type val alias)
-        ['ptrptr val] (emit-ptr-ptr-type val alias)
-        ['** val] (emit-ptr-ptr-type (definition 1) alias)
-        ['const t] (emit-const-type t alias)
-        (errorf "unexpected type form %v" definition))
-      (errorf "unexpected type form %v" definition)))
+         [definition &opt alias]
+         (match definition
+           (d (bytes? d)) (do (prin d) (if alias (prin " " alias)))
+           (t (tuple? t))
+           (match t
+             ['struct & body] (emit-struct-def nil body alias)
+             ['named-struct n & body] (emit-struct-def n body alias)
+             ['enum & body] (emit-enum-def nil body alias)
+             ['named-enum n & body] (emit-enum-def n body alias)
+             ['union & body] (emit-union-def nil body alias)
+             ['named-union n & body] (emit-union-def n body alias)
+             ['fn n & body] (emit-fn-pointer-type n body alias)
+             ['ptr val] (emit-ptr-type val alias)
+             ['* val] (emit-ptr-type val alias)
+             ['ptrptr val] (emit-ptr-ptr-type val alias)
+             ['** val] (emit-ptr-ptr-type (definition 1) alias)
+             ['const t] (emit-const-type t alias)
+             (errorf "unexpected type form %v" definition))
+           (errorf "unexpected type form %v" definition)))
 
   (defn emit-typedef
     [alias definition]
@@ -239,47 +239,47 @@
     (prin "}"))
 
   (setfn emit-expression
-    [form &opt noparen]
-    (match form
-     (f (or (symbol? f) (keyword? f))) (prin f)
-     (n (number? n)) (prinf "%.17g" n)
-     (s (string? s)) (prinf "%v" s) # todo - better match escape codes
-     (a (array? a)) (do
-                      (unless noparen (prin "("))
-                      (emit-array-ctor a)
-                      (unless noparen (prin ")")))
-     (d (dictionary? d))
-     (do
-       (unless noparen (prin "("))
-       (emit-struct-ctor (mapcat identity (sort (pairs d))))
-       (unless noparen (print ")")))
-     (t (tuple? t))
-     (do
-       (unless noparen (prin "("))
-       (def bops
-         {'+ '+ '- '- '* '* '/ '/ '% '% '< '<
-          '> '> '<= '<= '>= '>= '== '== '!= '!=
-          'and "&&" 'or "||" 'band "&" 'bor "|" 'bxor "^"
-          'blshift "<<" 'brshift ">>"})
-       (def uops {'bnot "~" 'not "!" 'neg "-"})
-       (match t
-         [(bs (bops bs)) & rest] (emit-binop (bops bs) ;rest)
-         [(bs (uops bs)) & rest] (emit-unop (uops bs) ;rest)
-         ['literal l] (prin (string l))
-         ['quote q] (prin (string q))
-         ['index v i] (emit-aindex v i)
-         ['call & args] (emit-funcall args)
-         ['set v i] (emit-set v i)
-         ['deref v] (emit-deref v)
-         ['addr v] (emit-address v)
-         ['cast t v] (emit-cast t v)
-         ['struct & vals] (emit-struct-ctor vals)
-         ['array & vals] (emit-array-ctor vals)
-         ['-> v f] (emit-indexer "->" v f)
-         ['. v f] (emit-indexer "." v f)
-         (emit-funcall t))
-       (unless noparen (prin ")")))
-     ie (errorf "invalid expression %v" ie)))
+         [form &opt noparen]
+         (match form
+           (f (or (symbol? f) (keyword? f))) (prin f)
+           (n (number? n)) (prinf "%.17g" n)
+           (s (string? s)) (prinf "%v" s) # todo - better match escape codes
+           (a (array? a)) (do
+                            (unless noparen (prin "("))
+                            (emit-array-ctor a)
+                            (unless noparen (prin ")")))
+           (d (dictionary? d))
+           (do
+             (unless noparen (prin "("))
+             (emit-struct-ctor (mapcat identity (sort (pairs d))))
+             (unless noparen (print ")")))
+           (t (tuple? t))
+           (do
+             (unless noparen (prin "("))
+             (def bops
+               {'+ '+ '- '- '* '* '/ '/ '% '% '< '<
+                '> '> '<= '<= '>= '>= '== '== '!= '!=
+                'and "&&" 'or "||" 'band "&" 'bor "|" 'bxor "^"
+                'blshift "<<" 'brshift ">>"})
+             (def uops {'bnot "~" 'not "!" 'neg "-"})
+             (match t
+               [(bs (bops bs)) & rest] (emit-binop (bops bs) ;rest)
+               [(bs (uops bs)) & rest] (emit-unop (uops bs) ;rest)
+               ['literal l] (prin (string l))
+               ['quote q] (prin (string q))
+               ['index v i] (emit-aindex v i)
+               ['call & args] (emit-funcall args)
+               ['set v i] (emit-set v i)
+               ['deref v] (emit-deref v)
+               ['addr v] (emit-address v)
+               ['cast t v] (emit-cast t v)
+               ['struct & vals] (emit-struct-ctor vals)
+               ['array & vals] (emit-array-ctor vals)
+               ['-> v f] (emit-indexer "->" v f)
+               ['. v f] (emit-indexer "." v f)
+               (emit-funcall t))
+             (unless noparen (prin ")")))
+           ie (errorf "invalid expression %v" ie)))
 
   # Statements
 
@@ -299,10 +299,10 @@
       (emit-expression value true)))
 
   (setfn emit-statement
-    [form]
-    (match form
-      ['def n t & v] (emit-declaration n t (first v))
-      (emit-expression form true)))
+         [form]
+         (match form
+           ['def n t & v] (emit-declaration n t (first v))
+           (emit-expression form true)))
 
   # Blocks
 
@@ -352,22 +352,36 @@
     (emit-expression v true)
     (print ";"))
 
+  (defn emit-janet [code &opt inner]
+    (each form code
+      (match
+        [(truthy? inner)
+         (protect (match
+                    (compile form)
+                    (f (function? f)) (f)
+                    (t (table? t)) (error (t :error))))]
+        [true [true (t (indexed? t))]] (each f t (emit-block f true))
+        [false [true (t (indexed? t))]] (each f t (emit-top f))
+        [_ [true (s (bytes? s))]] (print s)
+        [_ [false err]] (error err))))
+
   (setfn emit-block
-    [form &opt nobracket]
-    (unless nobracket
-      (emit-block-start))
-    (match form
-      ['do & body] (emit-do body)
-      ['while cond stm & body] (emit-while cond stm body)
-      ['if & body] (emit-cond body)
-      ['cond & body] (emit-cond body)
-      ['return val] (emit-return val)
-      ['break] (do (emit-indent) (print "break;"))
-      ['continue] (do (emit-indent) (print "continue;"))
-      ['label lab] (print "label " lab ":")
-      ['goto lab] (do (emit-indent) (print "goto " (form 1)))
-      stm (do (emit-indent) (emit-statement stm) (print ";")))
-    (unless nobracket (emit-block-end)))
+         [form &opt nobracket]
+         (unless nobracket
+           (emit-block-start))
+         (match form
+           ['do & body] (emit-do body)
+           ['while cond stm & body] (emit-while cond stm body)
+           ['if & body] (emit-cond body)
+           ['cond & body] (emit-cond body)
+           ['return val] (emit-return val)
+           ['break] (do (emit-indent) (print "break;"))
+           ['continue] (do (emit-indent) (print "continue;"))
+           ['label lab] (print "label " lab ":")
+           ['goto lab] (do (emit-indent) (print "goto " (form 1)))
+           ['$ & code] (do (emit-janet code true))
+           stm (do (emit-indent) (emit-statement stm) (print ";")))
+         (unless nobracket (emit-block-end)))
 
   # Top level forms
 
@@ -394,33 +408,22 @@
     [args]
     (print "#" (string/join (map string args) " ")))
 
-  (defn emit-janet [body]
-    (each form body
-      (match
-        (protect (match
-                   (compile form)
-                   (f (function? f)) (f)
-                   (t (table? t)) (error (t :error))))
-        [true (s (bytes? s))] (print s)
-        [true (t (indexed? t))] (each f t (emit-top f))
-        [false err] (error err))))
-
   (setfn emit-top
-    [form]
-    (match form
-      ['defn (sc (indexed? sc)) n al rt & b] (emit-function sc n al rt b)
-      ['defn n al rt & b] (emit-function [] n al rt b)
-      ['deft n d] (do (print) (emit-typedef n d))
-      ['def (sc (indexed? sc)) n t d]
-      (do (print)
-        (emit-storage-classes sc)
-        (emit-declaration n t d)
-        (print ";"))
-      ['def n t d] (do (emit-declaration n t d) (print ";"))
-      ['directive & directive] (emit-directive directive)
-      ['@ & directive] (emit-directive directive)
-      ['$ & code] (emit-janet code)
-      (errorf "unknown top-level form %v" form)))
+         [form]
+         (match form
+           ['defn (sc (indexed? sc)) n al rt & b] (emit-function sc n al rt b)
+           ['defn n al rt & b] (emit-function [] n al rt b)
+           ['deft n d] (do (print) (emit-typedef n d))
+           ['def (sc (indexed? sc)) n t d]
+           (do (print)
+             (emit-storage-classes sc)
+             (emit-declaration n t d)
+             (print ";"))
+           ['def n t d] (do (emit-declaration n t d) (print ";"))
+           ['directive & directive] (emit-directive directive)
+           ['@ & directive] (emit-directive directive)
+           ['$ & code] (emit-janet code)
+           (errorf "unknown top-level form %v" form)))
 
   # Final compilation
   (each top ir
