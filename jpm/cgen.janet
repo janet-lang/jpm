@@ -407,7 +407,7 @@
     (if (empty? body)
       (print ";")
       (do
-        (print " ")
+        (prin " ")
         (emit-do body))))
 
   (defn emit-directive
