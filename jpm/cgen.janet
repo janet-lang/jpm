@@ -360,7 +360,9 @@
                     (compile form)
                     (f (function? f)) (f)
                     (t (table? t)) (error (t :error))))]
+        [true [true (t (tuple? t) (symbol? (first t)))]] (emit-block t true)
         [true [true (t (indexed? t))]] (each f t (emit-block f true))
+        [false [true (t (tuple? t) (symbol? (first t)))]] (emit-top t)
         [false [true (t (indexed? t))]] (each f t (emit-top f))
         [_ [true (s (bytes? s))]] (print s)
         [_ [false err]] (error err))))
