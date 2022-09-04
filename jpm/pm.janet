@@ -301,11 +301,19 @@
 (defn update-installed
   "Update all previously installed packages to their latest versions."
   []
-  (each p (os/dir (find-manifest-dir))
+  (def to-update (os/dir (find-manifest-dir)))
+  (var updated-count 0)
+  (each p to-update
     (def bundle-data (parse (slurp (string (find-manifest-dir) "/" p))))
     (def new-bundle (merge-into @{} bundle-data))
     (put new-bundle :tag nil)
-    (bundle-install new-bundle true)))
+    (try
+      (do
+        (bundle-install new-bundle true)
+        (++ updated-count))
+      ([err f]
+       (debug/stacktrace f err (string "unable to update dependency " p ": ")))))
+  (print "updated " updated-count " of " (length to-update) " installed packages"))
 
 (defn out-of-tree-config
   "Create an out of tree build configuration. This lets a user have a debug or release build, as well

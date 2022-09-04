@@ -60,7 +60,7 @@
 
   (declare-source
     :prefix "$name"
-    :source ["src/init.janet"])
+    :source ["$name/init.janet"])
 
   (declare-native
     :name "${name}-native"
@@ -77,7 +77,7 @@
 
   JANET_FN(cfun_hello_native,
            "($name/hello-native)",
-           "Evaluate to \"Hello!\". but implementedd in C.") {
+           "Evaluate to \"Hello!\". but implemented in C.") {
       janet_fixarity(argc, 0);
       (void) argv;
       return janet_cstringv("Hello!");
@@ -146,7 +146,7 @@
 
 (deftemplate test-template
   ```
-  (use ../src/init)
+  (use ../$name/init)
 
   (assert (= (hello) "Hello!"))
   ```)
@@ -176,9 +176,9 @@
   (print "creating project directory for " name)
   (os/mkdir name)
   (os/mkdir (string name "/test"))
-  (os/mkdir (string name "/src"))
+  (os/mkdir (string name "/" name))
   (os/mkdir (string name "/bin"))
-  (spit (string name "/src/init.janet") (init-template template-opts))
+  (spit (string name "/" name "/init.janet") (init-template template-opts))
   (spit (string name "/test/basic.janet") (test-template template-opts))
   (spit (string name "/README.md") (readme-template template-opts))
   (spit (string name "/LICENSE") (license-template template-opts))
