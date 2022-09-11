@@ -403,8 +403,12 @@
       (set is-first false)
       (emit-type (arg 1))
       (prin " " (arg 0)))
-    (prin ") ")
-    (emit-do body))
+    (prin ")")
+    (if (empty? body)
+      (print ";")
+      (do
+        (prin " ")
+        (emit-do body))))
 
   (defn emit-directive
     [args]
