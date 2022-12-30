@@ -142,6 +142,10 @@
     `Evaluates to "Hello!"`
     []
     "Hello!")
+
+  (defn main
+    [& args]
+    (print (hello)))
   ```)
 
 (deftemplate test-template
