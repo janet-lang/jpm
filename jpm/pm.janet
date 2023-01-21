@@ -223,6 +223,7 @@
                 :shallow shallow
                 :buildpath "build/" # reset build path to default
                 :modpath (abspath (dyn:modpath))
+                :workers (dyn :workers)
                 :headerpath (abspath (dyn:headerpath))
                 :libpath (abspath (dyn:libpath))
                 :binpath (abspath (dyn:binpath))]

@@ -10,6 +10,17 @@
   []
   (dyn :use-batch-shell))
 
+(defn is-mingw
+  "Check if built with mingw"
+  []
+  (= (os/which) :mingw))
+
+(defn is-win-or-mingw
+  "Check if built with mingw"
+  []
+  (def os (os/which))
+  (or (= os :mingw) (= os :windows)))
+
 (defn find-build-dir
   "Gets the build directory to output files to."
   []
@@ -50,7 +61,7 @@
 (defn rimraf
   "Hard delete directory tree"
   [path]
-  (if (is-win)
+  (if (is-win-or-mingw)
     # windows get rid of read-only files
     (when (os/stat path :mode)
       (os/shell (string `rmdir /S /Q "` path `"`)))
@@ -78,27 +89,27 @@
   "Create all directories needed for a file (mkdir -p)."
   [dest]
   (def segs (peg/match path-splitter dest))
-  (def i1 (if (and (is-win) (string/has-suffix? ":" (first segs))) 2 1))
+  (def i1 (if (and (is-win-or-mingw) (string/has-suffix? ":" (first segs))) 2 1))
   (for i i1 (length segs)
     (def path (string/join (slice segs 0 i) "/"))
     (unless (empty? path) (os/mkdir path))))
 
 (defn devnull
   []
-  (os/open (if (= :windows (os/which)) "NUL" "/dev/null") :rw))
+  (os/open (if (is-win-or-mingw) "NUL" "/dev/null") :rw))
 
 (defn- patch-path
   "Add the bin-path to the regular path"
   [path]
   (if-let [bp (dyn:binpath)]
-    (string bp (if (= :windows (os/which)) ";" ":") path)
+    (string bp (if (is-win-or-mingw) ";" ":") path)
     path))
 
 (defn- patch-env
   []
   (def environ (os/environ))
   # Windows uses "Path"
-  (def PATH (if (in environ "Path") "Path" "PATH"))
+  (def PATH (if (is-win) "Path" "PATH"))
   (def env (merge-into environ {"JANET_PATH" (dyn:modpath)
                                 PATH (patch-path (os/getenv PATH))})))
 
@@ -168,7 +179,7 @@
   "Copy a file or directory recursively from one location to another."
   [src dest]
   (print "copying " src " to " dest "...")
-  (if (is-win)
+  (if (is-win-or-mingw)
     (let [end (last (peg/match path-splitter src))
           isdir (= (os/stat src :mode) :directory)]
       (shell "C:\\Windows\\System32\\xcopy.exe"
@@ -187,8 +198,8 @@
   "Create an absolute path. Does not resolve . and .. (useful for
   generating entries in install manifest file)."
   [path]
-  (if (if (is-win)
-        (peg/match '(+ "\\" (* (range "AZ" "az") ":\\")) path)
+  (if (if (is-win-or-mingw)
+        (peg/match '(+ "\\" (* (range "AZ" "az") (+ ":/" ":\\"))) path)
         (string/has-prefix? "/" path))
     path
     (string (os/cwd) "/" path)))

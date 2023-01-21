@@ -11,8 +11,22 @@
 
   (def hostos (os/which))
   (def iswin (= :windows hostos))
+  (def ismingw (= :mingw hostos))
   (def win-prefix (os/getenv "JANET_WINDOWS_PREFIX"))
-  (def prefix (dyn :prefix (os/getenv "JANET_PREFIX" (os/getenv "PREFIX" "/usr/local"))))
+
+  # Msys2 can do some strange things to paths. Using /usr/local directly may _appear_ to work,
+  # but there is some functionality to rewrite paths like /usr/local/bin/jpm to C:\\msys64\\usr\\local\\bin\\jpm
+  # in some places, where in others it will be converted to D:\\usr\\local\\bin\\jpm
+  (def prefix-guess
+    (let [de (dyn :executable)
+          suffix-win "\\bin\\janet.exe"
+          suffix-posix "/bin/janet"]
+      (cond
+        (string/has-suffix? suffix-win de) (string/replace-all "\\" "/" (string/slice de 0 (- -1 (length suffix-win))))
+        (string/has-suffix? suffix-posix de) (string/slice de 0 (- -1 (length suffix-posix)))
+        "/usr/local")))
+
+  (def prefix (dyn :prefix (os/getenv "JANET_PREFIX" (os/getenv "PREFIX" prefix-guess))))
 
   # Inherit from dyns and env variables
   (def pkglist (dyn :pkglist (os/getenv "JANET_PKGLIST" "https://github.com/janet-lang/pkgs.git")))
@@ -72,6 +86,7 @@
       :dynamic-lflags (case hostos
                         :windows @["/DLL"]
                         :macos @["-shared" "-undefined" "dynamic_lookup" "-lpthread"]
+                        :mingw @["-shared"]
                         @["-shared" "-lpthread"])
       :gitpath "git"
       :headerpath headerpath
@@ -81,20 +96,24 @@
       :janet-lflags (case hostos
                       :linux @["-lm" "-ldl" "-lrt" "-pthread"]
                       :macos @["-lm" "-ldl" "-pthread"]
+                      :mingw @["-lws2_32" "-lwsock32" "-lpsapi"]
                       :windows @[]
                       @["-lm" "-pthread"])
+      :janet-importlib (case hostos
+                         :windows (string headerpath "\\janet.lib")
+                         :mingw (string libpath "/janet.lib"))
       :ldflags @[]
       :lflags (case hostos
                 :windows @["/nologo"]
                 @[])
       :libpath libpath
       :manpath manpath
-      :modext (if iswin ".dll" ".so")
+      :modext (if (shutil/is-win-or-mingw) ".dll" ".so")
       :modpath modpath
       :nocolor false
       :pkglist pkglist
       :silent false
-      :statext (if iswin ".static.lib" ".a")
+      :statext (if (shutil/is-win-or-mingw) ".static.lib" ".a")
       :tarpath "tar"
       :test false
       :use-batch-shell iswin

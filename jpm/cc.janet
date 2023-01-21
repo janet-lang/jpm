@@ -109,14 +109,16 @@
   (def dep-ldflags (seq [x :in deplibs] (string (dyn:modpath) "/" x (dyn:modext))))
   # Use import libs on windows - we need an import lib to link natives to other natives.
   (def dep-importlibs (seq [x :in deplibs] (string (dyn:modpath) "/" x ".lib")))
+  (when-let [import-lib (dyn:janet-importlib)]
+    (array/push dep-importlibs import-lib))
+  (def dep-importlibs (distinct dep-importlibs))
   (def ldflags [;(opt opts :ldflags []) ;dep-ldflags])
   (rule target objects
         (unless (dyn:verbose) (print "creating native module " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
-          (clexe-shell linker ;ldflags (string "/OUT:" target) ;objects
-                 (string (dyn:headerpath) "/janet.lib") ;dep-importlibs ;lflags)
-          (shell linker ;cflags ;ldflags `-o` target ;objects ;lflags))))
+          (clexe-shell linker ;ldflags (string "/OUT:" target) ;objects ;dep-importlibs ;lflags)
+          (shell linker ;cflags ;ldflags `-o` target ;objects ;dep-importlibs ;lflags))))
 
 (defn archive-c
   "Link object files together to make a static library."

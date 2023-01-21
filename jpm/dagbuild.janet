@@ -54,7 +54,7 @@
   (eachk r dag (visit r))
 
   # run n workers in parallel
-  (default n-workers (max 1 (length seen)))
+  (default n-workers (dyn :workers (max 1 (length seen))))
   (assert (> n-workers 0))
   (var short-circuit false)
   (defn worker [n]

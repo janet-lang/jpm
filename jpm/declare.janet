@@ -186,7 +186,7 @@
   [&keys {:install install :name name :entry entry :headers headers
           :cflags cflags :lflags lflags :deps deps :ldflags ldflags
           :no-compile no-compile :no-core no-core}]
-  (def name (if (= (os/which) :windows) (string name ".exe") name))
+  (def name (if (is-win-or-mingw) (string name ".exe") name))
   (def dest (string (find-build-dir) name))
   (create-executable @{:cflags cflags :lflags lflags :ldflags ldflags :no-compile no-compile} entry dest no-core)
   (if no-compile
@@ -229,10 +229,10 @@
             (create-dirs destpath)
             (print "installing " main " to " destpath)
             (spit destpath contents)
-            (unless (= :windows (os/which)) (shell "chmod" "+x" destpath))))
+            (unless (is-win-or-mingw) (shell "chmod" "+x" destpath))))
     (install-rule main binpath))
   # Create a dud batch file when on windows.
-  (when (dyn:use-batch-shell)
+  (when (is-win-or-mingw)
     (def name (last (peg/match path-splitter main)))
     (def fullname (string binpath "/" name))
     (def bat (string "@echo off\r\ngoto #_undefined_# 2>NUL || title %COMSPEC% & janet \"" fullname "\" %*"))
@@ -386,7 +386,8 @@
           (uninstall (meta :name))))
 
   (task "clean" []
-        (def bd (find-build-dir))
+        # cut off trailing path separator (needed in msys2)
+        (def bd (string/slice (find-build-dir) 0 -2))
         (when (os/stat bd :mode)
           (rm bd)
           (print "Deleted build directory " bd)

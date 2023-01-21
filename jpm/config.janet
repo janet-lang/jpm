@@ -269,6 +269,7 @@
 (defconf :use-batch-shell :boolean "Switch to turn on if using the Batch shell on windows instead of POSIX shell")
 (defconf :janet-lflags :string-array "Link flags to pass when linking to libjanet")
 (defconf :janet-cflags :string-array "Compiler flags to pass when linking to libjanet")
+(defconf :janet-importlib :string-opt "Import library that lets native modules link to the host program (usually the interpreter)")
 
 # Settings that should probably only be set from the command line
 (defconf :auto-shebang :boolean "Automatically add a shebang line to installed janet scripts")
