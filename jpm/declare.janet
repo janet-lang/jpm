@@ -79,6 +79,8 @@
         (do (compile-c :c++ opts src op)
           (set has-cpp true)))
       op))
+  
+  (array/concat objects (get opts :objects []))
 
   (when-let [embedded (opts :embedded)]
     (loop [src :in embedded]
