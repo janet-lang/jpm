@@ -268,7 +268,9 @@
   [build-dir]
   (string/format
     `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
+    (put root-env :build-dir %v)
     (array/push module/paths [%v :native check-is-dep])`
+    build-dir
     (string build-dir ":all:" (dyn:modext))))
 
 (defn run-repl
