@@ -243,6 +243,15 @@
   (def ks (sort (seq [k :keys (dyn :rules)] k)))
   (each k ks (print k)))
 
+(defn list-tasks
+  [&opt ctx]
+  (import-rules "./project.janet")
+  (def ts
+    (sort (seq [[t r] :pairs (dyn :rules)
+                :when (get r :task)]
+            t)))
+  (each t ts (print t)))
+
 (defn list-installed
   []
   (def xs
@@ -359,6 +368,7 @@
    "repl" run-repl
    "run" local-rule
    "rules" list-rules
+   "tasks" list-tasks
    "update-pkgs" update-pkgs
    "update-installed" update-installed
    "uninstall" uninstall-cmd
