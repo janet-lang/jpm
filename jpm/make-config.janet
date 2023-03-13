@@ -94,8 +94,8 @@
       :janet "janet"
       :janet-cflags @[]
       :janet-lflags (case hostos
-                      :linux @["-lm" "-ldl" "-lrt" "-pthread"]
-                      :macos @["-lm" "-ldl" "-pthread"]
+                      :linux @["-lm" "-ldl" "-lrt" "-pthread" "-rdynamic"]
+                      :macos @["-lm" "-ldl" "-pthread" "-Wl,-export_dynamic"]
                       :mingw @["-lws2_32" "-lwsock32" "-lpsapi"]
                       :windows @[]
                       @["-lm" "-pthread"])

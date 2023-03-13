@@ -150,6 +150,7 @@
              ['ptrptr val] (emit-ptr-ptr-type val alias)
              ['** val] (emit-ptr-ptr-type (definition 1) alias)
              ['const t] (emit-const-type t alias)
+             ['array t] (emit-array-type t (get definition 2) alias)
              (errorf "unexpected type form %v" definition))
            (errorf "unexpected type form %v" definition)))
 
@@ -285,15 +286,7 @@
 
   (defn emit-declaration
     [v vtype &opt value]
-    (emit-type vtype)
-    (match v
-      ['array n & i]
-      (do
-        (prin " " n)
-        (prin "[")
-        (if-not (empty? i) (prin i))
-        (prin "]"))
-      (prin " " v))
+    (emit-type vtype v)
     (when (not= nil value)
       (prin " = ")
       (emit-expression value true)))
@@ -301,7 +294,7 @@
   (setfn emit-statement
          [form]
          (match form
-           ['def n t & v] (emit-declaration n t (first v))
+           ['def & args] (emit-declaration ;args)
            (emit-expression form true)))
 
   # Blocks
@@ -425,6 +418,7 @@
              (emit-storage-classes sc)
              (emit-declaration n t d)
              (print ";"))
+           ['do & body] (emit-do body)
            ['def n t d] (do (emit-declaration n t d) (print ";"))
            ['directive & directive] (emit-directive directive)
            ['@ & directive] (emit-directive directive)
@@ -440,24 +434,28 @@
   [& body]
   ~(,print-ir ',body))
 
+(defn process-file
+  "Load CGEN IR from a file, evalute it, and dump to an output file. If `out-path` is
+  not provided, will replace the .cgen suffix with .c in the input path file name."
+  [in-path &opt out-path]
+  (default out-path (string/slice in-path 0 -4))
+  (def ir (-> in-path slurp parse-all))
+  (with [o (file/open out-path :wbn)]
+    (with-dyns [:out o :current-file in-path] (print-ir ir))))
+
 #
-# Module loading
+# Module loading and file processing
 #
 
 (defn- loader
   [path &]
-  (with-dyns [:current-file path]
-    (let [p (parser/new)
-          c @[]]
-      (:consume p (slurp path))
-      (while (:has-more p)
-        (array/push c (:produce p)))
-      (defn tmpl [&opt rp]
-        (default rp (string/slice path 0 -4))
-        (with [o (file/open rp :wbn)]
-          (with-dyns [:out o :current-file path] (print-ir c))))
-      @{'render @{:doc "Main template function."
-                  :value tmpl}})))
+  (def c (-> path slurp parse-all))
+  (defn tmpl [&opt rp]
+    (default rp (string/slice path 0 -4))
+    (with [o (file/open rp :wbn)]
+      (with-dyns [:out o :current-file path] (print-ir c))))
+  @{'render @{:doc "Main template function."
+              :value tmpl}})
 
 (defn add-loader
   "Adds the custom template loader to Janet's module/loaders and

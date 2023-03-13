@@ -7,6 +7,8 @@
 (use ./shutil)
 (use ./cc)
 
+(import ./cgen)
+
 (defn- check-release
   []
   (= "release" (dyn:build-type "release")))
@@ -72,14 +74,19 @@
           (string/has-suffix? ".cpp" src) ".cpp"
           (string/has-suffix? ".cc" src) ".cc"
           (string/has-suffix? ".c" src) ".c"
-          (errorf "unknown source file type: %s, expected .c, .cc, or .cpp" src)))
+          (string/has-suffix? ".cgen" src) ".cgen"
+          (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .cgen" src)))
       (def op (out-path src suffix ".o"))
-      (if (= suffix ".c")
-        (compile-c :cc opts src op)
+      (case suffix
+        ".c" (compile-c :cc opts src op)
+        ".cgen" (do
+                  (def csrc (out-path src suffix ".c"))
+                  (rule csrc [src] (cgen/process-file src csrc))
+                  (compile-c :cc opts csrc op))
         (do (compile-c :c++ opts src op)
           (set has-cpp true)))
       op))
-  
+
   (when-let [embedded (opts :embedded)]
     (loop [src :in embedded]
       (def c-src (out-path src ".janet" ".janet.c"))
@@ -126,9 +133,16 @@
             (string/has-suffix? ".cpp" src) ".cpp"
             (string/has-suffix? ".cc" src) ".cc"
             (string/has-suffix? ".c" src) ".c"
-            (errorf "unknown source file type: %s, expected .c, .cc, or .cpp" src)))
+            (string/has-suffix? ".cgen" src) ".cgen"
+            (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .cgen" src)))
         (def op (out-path src suffix sobjext))
-        (compile-c (if (= ".c" suffix) :cc :c++) opts src op true)
+        (case suffix
+          ".c" (compile-c :cc opts src op true)
+          ".cgen" (do
+                    (def csrc (out-path src suffix ".c"))
+                    (rule csrc [src] (cgen/process-file src csrc))
+                    (compile-c :cc opts csrc op true))
+          (compile-c :c++ opts src op true))
         # Add artificial dep between static object and non-static object - prevents double errors
         # when doing default builds.
         (add-dep op (out-path src suffix ".o"))
