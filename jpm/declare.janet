@@ -7,11 +7,16 @@
 (use ./shutil)
 (use ./cc)
 
-(import ./cgen)
-
 (defn- check-release
   []
   (= "release" (dyn:build-type "release")))
+
+(defn- dofile-codegen
+  [in-path out-path]
+  (with [f (file/open out-path :wbn)]
+    (def env (make-env))
+    (put env :out f)
+    (dofile in-path :env env)))
 
 (defn install-rule
   "Add install and uninstall rule for moving files from src into destdir."
@@ -74,15 +79,15 @@
           (string/has-suffix? ".cpp" src) ".cpp"
           (string/has-suffix? ".cc" src) ".cc"
           (string/has-suffix? ".c" src) ".c"
-          (string/has-suffix? ".cgen" src) ".cgen"
-          (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .cgen" src)))
+          (string/has-suffix? ".janet" src) ".janet"
+          (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .janet" src)))
       (def op (out-path src suffix ".o"))
       (case suffix
         ".c" (compile-c :cc opts src op)
-        ".cgen" (do
-                  (def csrc (out-path src suffix ".c"))
-                  (rule csrc [src] (cgen/process-file src csrc))
-                  (compile-c :cc opts csrc op))
+        ".janet" (do
+                   (def csrc (out-path src suffix ".c"))
+                   (rule csrc [src] (dofile-codegen src csrc))
+                   (compile-c :cc opts csrc op))
         (do (compile-c :c++ opts src op)
           (set has-cpp true)))
       op))
@@ -133,15 +138,15 @@
             (string/has-suffix? ".cpp" src) ".cpp"
             (string/has-suffix? ".cc" src) ".cc"
             (string/has-suffix? ".c" src) ".c"
-            (string/has-suffix? ".cgen" src) ".cgen"
-            (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .cgen" src)))
+            (string/has-suffix? ".janet" src) ".janet"
+            (errorf "unknown source file type: %s, expected .c, .cc, .cpp, or .janet" src)))
         (def op (out-path src suffix sobjext))
         (case suffix
           ".c" (compile-c :cc opts src op true)
-          ".cgen" (do
-                    (def csrc (out-path src suffix ".c"))
-                    (rule csrc [src] (cgen/process-file src csrc))
-                    (compile-c :cc opts csrc op true))
+          ".janet" (do
+                     (def csrc (out-path src suffix ".c"))
+                     (rule csrc [src] (dofile-codegen src csrc))
+                     (compile-c :cc opts csrc op true))
           (compile-c :c++ opts src op true))
         # Add artificial dep between static object and non-static object - prevents double errors
         # when doing default builds.
