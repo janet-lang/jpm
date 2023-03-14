@@ -442,6 +442,20 @@
   [& body]
   ~(,print-ir ',body))
 
+###
+### For use with (import jpm/cgen)
+###
+
+(defmacro function [& args] ~(,do-function ,;(qq-wrap args)))
+(defmacro directive [& args] ~(,do-directive ,;(qq-wrap args)))
+(defmacro @ [& args] ~(,do-directive ,;(qq-wrap args)))
+(defmacro declare [& args] ~(,do-declare ,;(qq-wrap args)))
+(defmacro typedef [& args] ~(,do-typedef ,;(qq-wrap args)))
+
+###
+### Dynamic expansion
+###
+
 (defn process-file
   "Load CGEN IR from a file, evalute it, and dump to an output file. If `out-path` is
   not provided, will replace the .cgen suffix with .c in the input path file name. Normal
@@ -454,34 +468,3 @@
   (with [o (file/open out-path :wbn)]
     (put env :out o)
     (dofile in-path :env env)))
-
-###
-### Dynamic expansion
-###
-
-(defn- loader
-  [path &]
-  (def c (-> path slurp parse-all))
-  (defn tmpl [&opt rp]
-    (default rp (string/slice path 0 -4))
-    (with [o (file/open rp :wbn)]
-      (with-dyns [:out o :current-file path] (print-ir c))))
-  @{'render @{:doc "Main template function."
-              :value tmpl}})
-
-(defn add-loader
-  "Adds the custom template loader to Janet's module/loaders and
-  update module/paths."
-  []
-  (put module/loaders :cgen loader)
-  (module/add-paths ".cgen" :cgen))
-
-###
-### For use with (import jpm/cgen)
-###
-
-(defmacro function [& args] ~(,do-function ,;(qq-wrap args)))
-(defmacro directive [& args] ~(,do-directive ,;(qq-wrap args)))
-(defmacro @ [& args] ~(,do-directive ,;(qq-wrap args)))
-(defmacro declare [& args] ~(,do-declare ,;(qq-wrap args)))
-(defmacro typedef [& args] ~(,do-typedef ,;(qq-wrap args)))
