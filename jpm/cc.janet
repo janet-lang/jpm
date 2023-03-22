@@ -282,12 +282,15 @@ int main(int argc, const char **argv) {
   # Create executable's janet image
   (def cimage_dest (string dest ".c"))
   (def no-compile (opts :no-compile))
+  # monkey patch as with running tests
+  (def env (make-env))
+  (put env :build-dir (find-build-dir))
   (rule (if no-compile cimage_dest dest) [source]
         (print "generating executable c source " cimage_dest " from " source "...")
         (flush)
         (create-dirs dest)
         # Load entry environment and get main function.
-        (def entry-env (dofile source))
+        (def entry-env (dofile source :env env))
         (def main ((entry-env 'main) :value))
         (def dep-lflags @[])
         (def dep-ldflags @[])

@@ -250,10 +250,20 @@
     (if (and (dictionary? package) (or (package :url) (package :repo)))
       (array/push packages package)
       (print "Cannot add local or malformed package " mdir "/" man " to lockfile, skipping...")))
+
+  # Scramble to simulate runtime randomness (when trying to repro, order can
+  # be remarkable stable) - see janet-lang/janet issue #1082
+  # (def rand-thing (string (os/cryptorand 16)))
+  # (sort-by |(hash [rand-thing (get $ :url)]) packages)
+
+  # Sort initially by package url to make stable
+  (sort-by |[(get $ :url) (get $ :repo)] packages)
+
   # Put in correct order, such that a package is preceded by all of its dependencies
   (def ordered-packages @[])
   (def resolved @{})
   (while (< (length ordered-packages) (length packages))
+    (print "step")
     (var made-progress false)
     (each p packages
       (def {:url u :repo r :tag s :dependencies d :type t :shallow a} p)
@@ -261,6 +271,7 @@
       (def dep-bundles (map |(in (resolve-bundle $) :url) d))
       (unless (resolved key)
         (when (all resolved dep-bundles)
+          (print "item: " (or u r))
           (array/push ordered-packages {:url (or u r) :tag s :type t :shallow a})
           (set made-progress true)
           (put resolved key true))))
