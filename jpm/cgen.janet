@@ -426,3 +426,29 @@
   "Macro that automatically quotes the body provided and calls (print-ir ...) on the body."
   [& body]
   ~(,print-ir ',body))
+
+#
+# Module loading
+#
+
+(defn- loader
+  [path &]
+  (with-dyns [:current-file path]
+    (let [p (parser/new)
+          c @[]]
+      (:consume p (slurp path))
+      (while (:has-more p)
+        (array/push c (:produce p)))
+      (defn tmpl [&opt rp]
+        (default rp (string/slice path 0 -4))
+        (with [o (file/open rp :wbn)]
+          (with-dyns [:out o :current-file path] (print-ir c))))
+      @{'render @{:doc "Main template function."
+                  :value tmpl}})))
+
+(defn add-loader
+  "Adds the custom template loader to Janet's module/loaders and
+  update module/paths."
+  []
+  (put module/loaders :cgen loader)
+  (module/add-paths ".cgen" :cgen))
