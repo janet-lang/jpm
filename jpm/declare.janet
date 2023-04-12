@@ -85,6 +85,7 @@
       (case suffix
         ".c" (compile-c :cc opts src op)
         ".janet" (do
+                   (create-dirs op)
                    (def csrc (out-path src suffix ".c"))
                    (rule csrc [src] (dofile-codegen src csrc))
                    (compile-c :cc opts csrc op))
