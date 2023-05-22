@@ -282,104 +282,108 @@ int main(int argc, const char **argv) {
   # Create executable's janet image
   (def cimage_dest (string dest ".c"))
   (def no-compile (opts :no-compile))
-  # monkey patch as with running tests
-  (def env (make-env))
-  (put env :build-dir (find-build-dir))
+  (def bd (find-build-dir))
   (rule (if no-compile cimage_dest dest) [source]
         (print "generating executable c source " cimage_dest " from " source "...")
         (flush)
         (create-dirs dest)
-        # Load entry environment and get main function.
-        (def entry-env (dofile source :env env))
-        (def main ((entry-env 'main) :value))
-        (def dep-lflags @[])
-        (def dep-ldflags @[])
 
-        # Create marshalling dictionary
-        (def mdict1 (invert (env-lookup root-env)))
-        (def mdict
-          (if no-core
-            (let [temp @{}]
-              (eachp [k v] mdict1
-                (if (or (cfunction? k) (abstract? k))
-                  (put temp k v)))
-              temp)
-            mdict1))
+        # Monkey patch stuff
+        (def token (do-monkeypatch bd))
+        (defer (undo-monkeypatch token)
 
-        # Load all native modules
-        (def prefixes @{})
-        (def static-libs @[])
-        (loop [[name m] :pairs module/cache
-               :let [n (m :native)]
-               :when n
-               :let [prefix (gensym)]]
-          (print "found native " n "...")
-          (flush)
-          (put prefixes prefix n)
-          (array/push static-libs (modpath-to-static n))
-          (def oldproto (table/getproto m))
-          (table/setproto m nil)
-          (loop [[sym value] :pairs (env-lookup m)]
-            (put mdict value (symbol prefix sym)))
-          (table/setproto m oldproto))
+          # Load entry environment and get main function.
+          (def env (make-env))
+          (def entry-env (dofile source :env env))
+          (def main ((entry-env 'main) :value))
+          (def dep-lflags @[])
+          (def dep-ldflags @[])
 
-        # Find static modules
-        (var has-cpp false)
-        (def declarations @"")
-        (def lookup-into-invocations @"")
-        (loop [[prefix name] :pairs prefixes]
-          (def meta (eval-string (slurp (modpath-to-meta name))))
-          (if (meta :cpp) (set has-cpp true))
-          (buffer/push-string lookup-into-invocations
-                              "    temptab = janet_table(0);\n"
-                              "    temptab->proto = env;\n"
-                              "    " (meta :static-entry) "(temptab);\n"
-                              "    janet_env_lookup_into(lookup, temptab, \""
-                              prefix
-                              "\", 0);\n\n")
-          (when-let [lfs (meta :lflags)]
-            (array/concat dep-lflags lfs))
-          (when-let [lfs (meta :ldflags)]
-            (array/concat dep-ldflags lfs))
-          (buffer/push-string declarations
-                              "extern void "
-                              (meta :static-entry)
-                              "(JanetTable *);\n"))
+          # Create marshalling dictionary
+          (def mdict1 (invert (env-lookup root-env)))
+          (def mdict
+            (if no-core
+              (let [temp @{}]
+                (eachp [k v] mdict1
+                  (if (or (cfunction? k) (abstract? k))
+                    (put temp k v)))
+                temp)
+              mdict1))
 
-        # Build image
-        (def image (marshal main mdict))
-        # Make image byte buffer
-        (create-buffer-c-impl image cimage_dest "janet_payload_image")
-        # Append main function
-        (spit cimage_dest (make-bin-source declarations lookup-into-invocations no-core) :ab)
-        (def oimage_dest (out-path cimage_dest ".c" ".o"))
-        # Compile and link final exectable
-        (unless no-compile
-          (def ldflags [;dep-ldflags ;(opt opts :ldflags [])])
-          (def lflags [;static-libs 
-                       (string (dyn:libpath) "/libjanet." (last (string/split "." (dyn:statext))))
-                        ;dep-lflags ;(opt opts :lflags []) ;(dyn:janet-lflags)])
-          (def defines (make-defines (opt opts :defines {})))
-          (def cc (opt opts :cc))
-          (def cflags [;(getflags opts :cc) ;(dyn:janet-cflags)])
-          (print "compiling " cimage_dest " to " oimage_dest "...")
-          (flush)
-          (create-dirs oimage_dest)
-          (if (dyn:is-msvc)
-            (clexe-shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
-            (shell cc "-c" cimage_dest ;defines ;cflags "-o" oimage_dest))
-          (if has-cpp
-            (let [linker (opt opts (if (dyn :is-msvc) :c++-link :c++))
-                  cppflags [;(getflags opts :c++) ;(dyn:janet-cflags)]]
-              (print "linking " dest "...")
-              (flush)
-              (if (dyn:is-msvc)
-                (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
-                (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
-            (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
-              (print "linking " dest "...")
-              (flush)
-              (create-dirs dest)
-              (if (dyn:is-msvc)
-                (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
-                (shell linker ;cflags ;ldflags `-o` dest oimage_dest ;lflags)))))))
+          # Load all native modules
+          (def prefixes @{})
+          (def static-libs @[])
+          (loop [[name m] :pairs module/cache
+                 :let [n (m :native)]
+                 :when n
+                 :let [prefix (gensym)]]
+            (print "found native " n "...")
+            (flush)
+            (put prefixes prefix n)
+            (array/push static-libs (modpath-to-static n))
+            (def oldproto (table/getproto m))
+            (table/setproto m nil)
+            (loop [[sym value] :pairs (env-lookup m)]
+              (put mdict value (symbol prefix sym)))
+            (table/setproto m oldproto))
+
+          # Find static modules
+          (var has-cpp false)
+          (def declarations @"")
+          (def lookup-into-invocations @"")
+          (loop [[prefix name] :pairs prefixes]
+            (def meta (eval-string (slurp (modpath-to-meta name))))
+            (if (meta :cpp) (set has-cpp true))
+            (buffer/push-string lookup-into-invocations
+                                "    temptab = janet_table(0);\n"
+                                "    temptab->proto = env;\n"
+                                "    " (meta :static-entry) "(temptab);\n"
+                                "    janet_env_lookup_into(lookup, temptab, \""
+                                prefix
+                                "\", 0);\n\n")
+            (when-let [lfs (meta :lflags)]
+              (array/concat dep-lflags lfs))
+            (when-let [lfs (meta :ldflags)]
+              (array/concat dep-ldflags lfs))
+            (buffer/push-string declarations
+                                "extern void "
+                                (meta :static-entry)
+                                "(JanetTable *);\n"))
+
+          # Build image
+          (def image (marshal main mdict))
+          # Make image byte buffer
+          (create-buffer-c-impl image cimage_dest "janet_payload_image")
+          # Append main function
+          (spit cimage_dest (make-bin-source declarations lookup-into-invocations no-core) :ab)
+          (def oimage_dest (out-path cimage_dest ".c" ".o"))
+          # Compile and link final exectable
+          (unless no-compile
+            (def ldflags [;dep-ldflags ;(opt opts :ldflags [])])
+            (def lflags [;static-libs
+                         (string (dyn:libpath) "/libjanet." (last (string/split "." (dyn:statext))))
+                          ;dep-lflags ;(opt opts :lflags []) ;(dyn:janet-lflags)])
+            (def defines (make-defines (opt opts :defines {})))
+            (def cc (opt opts :cc))
+            (def cflags [;(getflags opts :cc) ;(dyn:janet-cflags)])
+            (print "compiling " cimage_dest " to " oimage_dest "...")
+            (flush)
+            (create-dirs oimage_dest)
+            (if (dyn:is-msvc)
+              (clexe-shell cc ;defines "/c" ;cflags (string "/Fo" oimage_dest) cimage_dest)
+              (shell cc "-c" cimage_dest ;defines ;cflags "-o" oimage_dest))
+            (if has-cpp
+              (let [linker (opt opts (if (dyn :is-msvc) :c++-link :c++))
+                    cppflags [;(getflags opts :c++) ;(dyn:janet-cflags)]]
+                (print "linking " dest "...")
+                (flush)
+                (if (dyn:is-msvc)
+                  (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
+                  (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
+              (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
+                (print "linking " dest "...")
+                (flush)
+                (create-dirs dest)
+                (if (dyn:is-msvc)
+                  (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
+                  (shell linker ;cflags ;ldflags `-o` dest oimage_dest ;lflags))))))))

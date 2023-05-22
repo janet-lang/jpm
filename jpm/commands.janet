@@ -183,8 +183,7 @@
 
 (defn build
   []
-  (def [ok _] (protect (local-rule "build")))
-  (unless ok (os/exit 1)))
+  (local-rule "build"))
 
 (defn clean
   []

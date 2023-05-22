@@ -282,62 +282,25 @@
   (when-let [mp (dyn :manpath)]
     (install-rule page mp)))
 
-(defn- make-monkeypatch
-  [build-dir]
-  (string/format
-    `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
-    (put root-env :build-dir %v)
-    (array/push module/paths [%v :native check-is-dep])`
-    build-dir
-    (string build-dir ":all:" (dyn:modext))))
-
-(defn run-repl
-  "Run a repl that has the same environment as the test environment."
-  []
-  (def bd (find-build-dir))
-  (def monkey-patch (make-monkeypatch bd))
-  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
-  (os/execute
-    [(dyn:janet) "-r" "-e" monkey-patch]
-    :ep
-    environ))
-
-(defn run-script
-  "Run a local script in the monkey patched environment."
-  [path]
-  (def bd (find-build-dir))
-  (def monkey-patch (make-monkeypatch bd))
-  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
-  (os/execute
-    [(dyn:janet) "-e" monkey-patch "--" path]
-    :ep
-    environ))
-
 (defn run-tests
   "Run tests on a project in the current directory. The tests will
   be run in the environment dictated by (dyn :modpath)."
-  [&opt root-directory build-directory]
-  (def bd (or build-directory (find-build-dir)))
-  (def monkey-patch (make-monkeypatch bd))
-  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  [&opt root-directory]
   (var errors-found 0)
   (defn dodir
-    [dir bdir]
+    [dir]
     (each sub (sort (os/dir dir))
       (def ndir (string dir "/" sub))
       (case (os/stat ndir :mode)
         :file (when (string/has-suffix? ".janet" ndir)
                 (print "running " ndir " ...")
                 (flush)
-                (def result (os/execute
-                              [(dyn:janet) "-e" monkey-patch ndir]
-                              :ep
-                              environ))
+                (def result (run-script ndir))
                 (when (not= 0 result)
                   (++ errors-found)
                   (eprintf "non-zero exit code in %s: %d" ndir result)))
-        :directory (dodir ndir bdir))))
-  (dodir (or root-directory "test") bd)
+        :directory (dodir ndir))))
+  (dodir (or root-directory "test"))
   (if (zero? errors-found)
     (print "All tests passed.")
     (do

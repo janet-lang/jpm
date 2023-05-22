@@ -223,3 +223,49 @@
   "Get the directory of a file without the filename."
   [path]
   (string/join (slice (peg/match path-splitter path) 0 -2) "/"))
+
+(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
+
+(defn do-monkeypatch
+  "Modify the existing environment to have the same paths as the test environment."
+  [build-dir]
+  (def old-builddir (dyn :build-dir))
+  (put root-env :build-dir build-dir)
+  (array/insert module/paths 1 [build-dir :native check-is-dep])
+  old-builddir)
+
+(defn undo-monkeypatch
+  [old-builddir]
+  (put root-env :build-dir old-builddir)
+  (array/remove module/paths 1))
+
+(defn- make-monkeypatch
+  [build-dir]
+  (string/format
+    `(defn- check-is-dep [x] (unless (or (string/has-prefix? "/" x) (string/has-prefix? "." x)) x))
+    (put root-env :build-dir %v)
+    (array/insert module/paths 1 [%v :native check-is-dep])`
+    build-dir
+    (string build-dir ":all:" (dyn:modext))))
+
+(defn run-patched
+  "Run a subprocess Janet repl that has the same environment as the test environment."
+  [& extra-args]
+  (def bd (find-build-dir))
+  (def monkey-patch (make-monkeypatch bd))
+  (def environ (merge-into (os/environ) {"JANET_PATH" (dyn:modpath)}))
+  (os/execute
+    [(dyn:janet) "-e" monkey-patch ;extra-args]
+    :ep
+    environ))
+
+(defn run-repl
+  "Run a repl in the monkey patched test environment"
+  []
+  (run-patched "-r"))
+
+(defn run-script
+  "Run a local script in the monkey patched environment."
+  [path]
+  (run-patched "--" path))
+
