@@ -52,6 +52,9 @@
         new-c-project name
             Create a new C+Janet project in a directory `name`.
 
+        new-exe-project name
+            Create a new project for an executable in a directory `name`.
+
     Privileged global subcommands:
 
         install (repo or name)...
@@ -349,6 +352,11 @@
   [name]
   (scaffold-project name {:c true}))
 
+(defn new-exe-project
+  "Create a new executable project"
+  [name]
+  (scaffold-project name {:c false :exe true}))
+
 (def subcommands
   {"build" build
    "clean" clean
@@ -378,5 +386,6 @@
    "exec" shell
    "new-project" new-project
    "new-c-project" new-c-project
+   "new-exe-project" new-exe-project
    "janet" (fn [& args] (shell (dyn :executable) ;args))
    "save-config" save-config})
