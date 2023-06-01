@@ -48,7 +48,7 @@
 
   (declare-source
     :prefix "$name"
-    :source ["src/init.janet"])
+    :source ["$name/init.janet"])
   ````)
 
 (deftemplate native-project-template
