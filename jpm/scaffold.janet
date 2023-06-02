@@ -96,6 +96,18 @@
   }
   ```)
 
+(deftemplate exe-project-template
+  ````
+  (declare-project
+    :name "$name"
+    :description ```$description ```
+    :version "0.0.0")
+
+  (declare-executable
+    :name "$name"
+    :entry "$name/init.janet")
+  ````)
+
 (deftemplate readme-template
   ```
   # ${name}
@@ -176,6 +188,7 @@
   (def description (opt-ask :description options))
   (def date (format-date))
   (def scaffold-native (get options :c))
+  (def scaffold-exe (get options :exe))
   (def template-opts (merge-into @{:name name :year year :author author :date date :description description} options))
   (print "creating project directory for " name)
   (os/mkdir name)
@@ -187,11 +200,15 @@
   (spit (string name "/README.md") (readme-template template-opts))
   (spit (string name "/LICENSE") (license-template template-opts))
   (spit (string name "/CHANGELOG.md") (changelog-template template-opts))
-  (if scaffold-native
+  (cond
+    scaffold-native
     (do
       (os/mkdir (string name "/c"))
       (spit (string name "/c/module.c") (module-c-template template-opts))
       (spit (string name "/test/native.janet") (native-test-template template-opts))
       (spit (string name "/project.janet") (native-project-template template-opts)))
+    scaffold-exe
+    (do
+      (spit (string name "/project.janet") (exe-project-template template-opts)))
     (do
       (spit (string name "/project.janet") (project-template template-opts)))))
