@@ -120,8 +120,8 @@
         (unless (dyn:verbose) (print "creating native module " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
-          (clexe-shell linker ;ldflags (string "/OUT:" target) ;objects ;dep-importlibs ;lflags)
-          (shell linker ;cflags ;ldflags `-o` target ;objects ;dep-importlibs ;lflags))))
+          (clexe-shell linker (string "/OUT:" target) ;objects ;dep-importlibs ;ldflags ;lflags)
+          (shell linker ;cflags `-o` target ;objects ;dep-importlibs ;ldflags ;lflags))))
 
 (defn archive-c
   "Link object files together to make a static library."
@@ -378,12 +378,12 @@ int main(int argc, const char **argv) {
                 (print "linking " dest "...")
                 (flush)
                 (if (dyn:is-msvc)
-                  (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
-                  (shell linker ;cppflags ;ldflags `-o` dest oimage_dest ;lflags)))
+                  (clexe-shell linker (string "/OUT:" dest) oimage_dest ;ldflags ;lflags)
+                  (shell linker ;cppflags `-o` dest oimage_dest ;ldflags ;lflags)))
               (let [linker (opt opts (if (dyn:is-msvc) :cc-link :cc))]
                 (print "linking " dest "...")
                 (flush)
                 (create-dirs dest)
                 (if (dyn:is-msvc)
-                  (clexe-shell linker ;ldflags (string "/OUT:" dest) oimage_dest ;lflags)
-                  (shell linker ;cflags ;ldflags `-o` dest oimage_dest ;lflags))))))))
+                  (clexe-shell linker (string "/OUT:" dest) oimage_dest ;ldflags ;lflags)
+                  (shell linker ;cflags `-o` dest oimage_dest ;ldflags ;lflags))))))))
