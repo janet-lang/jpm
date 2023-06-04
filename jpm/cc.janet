@@ -243,6 +243,7 @@ int main(int argc, const char **argv) {
     /* Create enviornment */
     temptab = env;
     janet_table_put(temptab, janet_ckeywordv("args"), janet_wrap_array(args));
+    janet_table_put(temptab, janet_ckeywordv("executable"), janet_cstringv(argv[0]));
     janet_gcroot(janet_wrap_table(temptab));
 
     /* Unlock GC */
