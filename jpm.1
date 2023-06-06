@@ -8,13 +8,13 @@ jpm \- the Janet Project Manager, a build tool for Janet
 .IR command
 .IR args ...
 .SH DESCRIPTION
-jpm is the build tool that ships with a standard Janet install. It is
-used for building Janet projects, installing dependencies, installing
-projects, building native modules, and exporting your Janet project to a
-standalone executable. Although not required for working with Janet, it
-removes much of the boilerplate with installing dependencies and
-building native modules. jpm requires only Janet to run, and uses git
-to install dependencies (jpm will work without git installed).
+jpm is used for building Janet projects, installing dependencies,
+installing projects, building native modules, and exporting your Janet
+project to a standalone executable. Although not required for working
+with Janet, it removes much of the boilerplate with installing
+dependencies and building native modules. jpm requires only janet to
+run, and uses git to install dependencies (jpm will work without git
+installed).
 .SH DOCUMENTATION
 
 jpm has several subcommands, each used for managing either a single Janet project or
@@ -165,6 +165,10 @@ Create a new Janet project interactively in a directory "name".
 .BR new-c-project\ [\fBname\fR]
 Create a new C+Janet project interactively in a directory "name".
 
+.TP
+.BR new-exe-project\ [\fBname\fR]
+Create a new project for an executable in a directory "name".
+
 .SH ENVIRONMENT
 
 .B JANET_TREE
@@ -224,7 +228,7 @@ directory exist before building.
 
 .B JANET_PKGLIST
 .RS
-The git repository URL that contains a listing of packages. This allows installing packages with shortnames, which
+The git repository URL that contains a listing of packages. This allows installing packages with short names, which
 is mostly a convenience. However, package dependencies can use short names, package listings
 can be used to choose a particular set of dependency versions for a whole project.
 .RE
@@ -237,7 +241,7 @@ if you have a normal install of git.
 
 .B JANET_JPM_CONFIG
 .RS
-An optional path to a config file to load. This option is overriden by the --config-file command
+An optional path to a config file to load. This option is overridden by the --config-file command
 line option.
 
 .SH AUTHOR
