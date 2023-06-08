@@ -231,7 +231,7 @@
   [build-dir]
   (def old-builddir (dyn :build-dir))
   (put root-env :build-dir build-dir)
-  (array/insert module/paths 1 [build-dir :native check-is-dep])
+  (array/insert module/paths 1 [(string build-dir ":all::native:") :native check-is-dep])
   old-builddir)
 
 (defn undo-monkeypatch
