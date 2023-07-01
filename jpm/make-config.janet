@@ -113,7 +113,7 @@
       :nocolor false
       :pkglist pkglist
       :silent false
-      :importlibext (if (shutil/is-win-or-mingw) ".lib" [])
+      :importlibext (if (shutil/is-win-or-mingw) ".lib" nil)
       :statext (if (shutil/is-win-or-mingw) ".static.lib" ".a")
       :tarpath "tar"
       :test false
