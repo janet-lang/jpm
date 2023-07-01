@@ -66,6 +66,7 @@
 
   (def modext (dyn:modext))
   (def statext (dyn:statext))
+  (def importlibext (dyn :importlibext nil))
 
   # Make dynamic module
   (def lname (string (find-build-dir) name modext))
@@ -127,6 +128,7 @@
   # Make static module
   (unless (dyn :nostatic)
     (def sname (string (find-build-dir) name statext))
+    (def impname (if importlibext (string (find-build-dir) name importlibext) nil))
     (def opts (merge @{:entry-name ename} opts))
     (def sobjext ".static.o")
     (def sjobjext ".janet.static.o")
@@ -166,6 +168,8 @@
     (when (check-release)
       (add-dep "build" sname))
     (put declare-targets :static sname)
+    (when impname
+      (install-rule impname path))
     (install-rule sname path))
 
   declare-targets)
