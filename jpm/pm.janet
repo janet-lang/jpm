@@ -325,7 +325,9 @@
         (++ updated-count))
       ([err f]
        (debug/stacktrace f err (string "unable to update dependency " p ": ")))))
-  (print "updated " updated-count " of " (length to-update) " installed packages"))
+  (print "updated " updated-count " of " (length to-update) " installed packages")
+  (unless (= updated-count (length to-update))
+    (error "could not update all installed packages")))
 
 (defn out-of-tree-config
   "Create an out of tree build configuration. This lets a user have a debug or release build, as well
