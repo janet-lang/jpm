@@ -106,11 +106,15 @@
   (def lflags [;(opt opts :lflags)
                ;(if (opts :static) [] (dyn:dynamic-lflags))])
   (def deplibs (get opts :native-deps []))
-  (def dep-ldflags (seq [x :in deplibs] (string (dyn:modpath) "/" x (dyn:modext))))
+  (def linkext
+    (if (is-win-or-mingw)
+      (dyn :importlibext)
+      (dyn :modext)))
+  (def dep-ldflags (seq [x :in deplibs] (string (dyn:modpath) "/" x linkext)))
   # Use import libs on windows - we need an import lib to link natives to other natives.
   (def dep-importlibs
     (if (is-win-or-mingw)
-      (seq [x :in deplibs] (string (dyn:modpath) "/" x ".lib"))
+      (seq [x :in deplibs] (string (dyn:modpath) "/" x (dyn :importlibext)))
       @[]))
   (when-let [import-lib (dyn :janet-importlib)]
     (array/push dep-importlibs import-lib))
