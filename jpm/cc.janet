@@ -98,22 +98,6 @@
           (clexe-shell cc ;defines "/c" ;cflags (string "/Fo" dest) src)
           (shell cc "-c" src ;defines ;cflags "-o" dest))))
 
-  (comment
-
-    (def dep-ldflags (seq [x :in deplibs] (string (dyn:modpath) "/" x (dyn:modext)))) # original behaviour when building wjpu with tarray as a dependency: \spork\tarray.dll : fatal error LNK1107: invalid or corrupt file: cannot read at 0x2D0
-    (seq [x :in deplibs] (string (dyn:modpath) "/" x ".lib")) # see above for original behaviour; using :importlibext works for wjpu + tarray:
-see https://stackoverflow.com/questions/9688200/difference-between-shared-objects-so-static-libraries-a-and-dlls-so
-   ```
-When a developer wants to use an already-built DLL, she must either reference
-an "export library" (*.LIB) created by the DLL developer when she created the
-DLL, or she must explicitly load the DLL at run time and request the entry
-point address by name via the LoadLibrary() and GetProcAddress() mechanisms.
-Most of the time, linking against a LIB file (which simply contains the linker
-metadata for the DLL's exported entry points) is the way DLLs get used. Dynamic
-loading is reserved typically for implementing "polymorphism" or "runtime
-configurability" in program behaviors (accessing add-ons or later-defined
-functionality, aka "plugins").```)
-
 (defn link-c
   "Link C or C++ object files together to make a native module."
   [has-cpp opts target & objects]
@@ -122,9 +106,10 @@ functionality, aka "plugins").```)
   (def lflags [;(opt opts :lflags)
                ;(if (opts :static) [] (dyn:dynamic-lflags))])
   (def deplibs (get opts :native-deps []))
-  (def linkext (if (is-win-or-mingw)
-                    (dyn :importlibext)
-                    (dyn :modext)))
+  (def linkext
+    (if (is-win-or-mingw)
+      (dyn :importlibext)
+      (dyn :modext)))
   (def dep-ldflags (seq [x :in deplibs] (string (dyn:modpath) "/" x linkext)))
   # Use import libs on windows - we need an import lib to link natives to other natives.
   (def dep-importlibs
