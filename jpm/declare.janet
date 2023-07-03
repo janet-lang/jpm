@@ -302,13 +302,15 @@
                 (def result (run-script ndir))
                 (when (not= 0 result)
                   (++ errors-found)
-                  (eprintf "non-zero exit code in %s: %d" ndir result)))
+                  (eprinf (color :red "non-zero exit code in %s: ") ndir)
+                  (eprintf "%d" result)))
         :directory (dodir ndir))))
   (dodir (or root-directory "test"))
   (if (zero? errors-found)
-    (print "All tests passed.")
+    (print (color :green "✓ All tests passed."))
     (do
-      (printf "Failing test scripts: %d" errors-found)
+      (prin (color :red "✘ Failing test scripts: "))
+      (printf "%d" errors-found)
       (os/exit 1)))
   (flush))
 

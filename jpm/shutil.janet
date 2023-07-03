@@ -4,6 +4,17 @@
 
 (use ./config)
 
+(def colors
+  {:green "\e[32m"
+   :red "\e[31m"})
+
+(defn color
+  "Color text with ascii escape sequences if (os/isatty)"
+  [input-color text]
+  (if (os/isatty)
+    (string (get colors input-color "\e[0m") text "\e[0m")
+    text))
+
 (defn is-win
   "Check if we should assume a DOS-like shell or default
   to posix shell."
