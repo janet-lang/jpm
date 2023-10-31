@@ -206,35 +206,59 @@
     (errorf "unknown bundle type %v" bundle-type))
   bundle-dir)
 
+(var- installed-bundle-index nil)
+(defn is-bundle-installed
+  "Determines if a bundle has been installed or not"
+  [bundle]
+  # initialize bundle index
+  (unless installed-bundle-index
+    (set installed-bundle-index @{})
+    (os/mkdir (find-manifest-dir))
+    (each manifest (os/dir (find-manifest-dir))
+      (def bundle-data (parse (slurp (string (find-manifest-dir) "/" manifest))))
+      (def {:url u :repo r :tag s :type t :shallow a} bundle-data)
+      (put installed-bundle-index (or u r) {:tag s
+                                            :type t
+                                            :shallow (not (nil? a))})))
+  (when-let [installed-bundle (get installed-bundle-index (bundle :url))]
+    (def {:type bt :tag bs} bundle)
+    (def {:type it :tag is} installed-bundle)
+    (and
+      (or (not bt) (= bt it))
+      (or (not bs) (= bs is)))))
+
 (defn bundle-install
   "Install a bundle from a git repository."
-  [bundle &opt no-deps]
-  (def {:url url
-        :tag tag
-        :type bundle-type
-        :shallow shallow}
-   (resolve-bundle bundle))
-  (def bdir (download-bundle url bundle-type tag shallow))
-  (def olddir (os/cwd))
-  (defer (os/cd olddir)
-    (os/cd bdir)
-    (with-dyns [:rules @{}
-                :bundle-type (or bundle-type :git)
-                :shallow shallow
-                :buildpath "build/" # reset build path to default
-                :modpath (abspath (dyn:modpath))
-                :workers (dyn :workers)
-                :headerpath (abspath (dyn:headerpath))
-                :libpath (abspath (dyn:libpath))
-                :binpath (abspath (dyn:binpath))]
-      (def dep-env (require-jpm "./project.janet" @{:jpm-no-deps true}))
-      (unless no-deps
-        (def meta (dep-env  :project))
-        (if-let [deps (meta :dependencies)]
-          (each dep deps
-            (bundle-install dep))))
-      (each r ["build" "install"]
-        (build-rules (get dep-env :rules {}) [r])))))
+  [bundle &opt no-deps force-update]
+  (def bundle (resolve-bundle bundle))
+  (when (or (not (is-bundle-installed bundle)) force-update)
+    (def {:url url
+          :tag tag
+          :type bundle-type
+          :shallow shallow}
+      bundle)
+    (def bdir (download-bundle url bundle-type tag shallow))
+    (def olddir (os/cwd))
+    (defer (os/cd olddir)
+      (os/cd bdir)
+      (with-dyns [:rules @{}
+                  :bundle-type (or bundle-type :git)
+                  :shallow shallow
+                  :buildpath "build/" # reset build path to default
+                  :modpath (abspath (dyn:modpath))
+                  :workers (dyn :workers)
+                  :headerpath (abspath (dyn:headerpath))
+                  :libpath (abspath (dyn:libpath))
+                  :binpath (abspath (dyn:binpath))]
+        (def dep-env (require-jpm "./project.janet" @{:jpm-no-deps true}))
+        (unless no-deps
+          (def meta (dep-env  :project))
+          (if-let [deps (meta :dependencies)]
+            (each dep deps
+              (bundle-install dep))))
+        (each r ["build" "install"]
+          (build-rules (get dep-env :rules {}) [r]))
+        (put installed-bundle-index url bundle)))))
 
 (set bundle-install-recursive bundle-install)
 
@@ -321,7 +345,7 @@
     (put new-bundle :tag nil)
     (try
       (do
-        (bundle-install new-bundle true)
+        (bundle-install new-bundle true true)
         (++ updated-count))
       ([err f]
        (debug/stacktrace f err (string "unable to update dependency " p ": ")))))
