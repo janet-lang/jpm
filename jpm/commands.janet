@@ -170,6 +170,12 @@
   (import-rules "./project.janet" @{:jpm-no-deps no-deps})
   (do-rule rule))
 
+(defn show-config
+  []
+  (def configs (sorted (keys config-set)))
+  (each conf configs
+    (printf (if (dyn :nocolor) ":%-26s%.99q" ":%-26s%.99Q") (string conf) (dyn conf))))
+
 (defn show-paths
   []
   (print "tree:       " (dyn :tree))
@@ -368,6 +374,7 @@
    "debug-repl" jpm-debug-repl
    "rule-tree" show-rule-tree
    "show-paths" show-paths
+   "show-config" show-config
    "list-installed" list-installed
    "list-pkgs" list-pkgs
    "clear-cache" clear-cache
