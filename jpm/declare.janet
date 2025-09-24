@@ -185,7 +185,9 @@
   (if (bytes? sources)
     (install-rule sources path)
     (each s sources
-      (install-rule s path))))
+      (install-rule s path)))
+  (when prefix
+    (array/push (dyn :installed-files) path)))
 
 (defn declare-headers
   "Declare headers for a library installation. Installed headers can be used by other native
