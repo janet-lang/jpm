@@ -300,7 +300,9 @@ int main(int argc, const char **argv) {
           # Load entry environment and get main function.
           (def env (make-env))
           (def entry-env (dofile source :env env))
-          (def main ((entry-env 'main) :value))
+          (def main (get-in entry-env ['main :value]))
+          (assert (and main (function? main))
+                  (string/format "no main function in %s" source))
           (def dep-lflags @[])
           (def dep-ldflags @[])
 
