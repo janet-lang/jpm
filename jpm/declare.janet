@@ -113,7 +113,6 @@
   (rule metaname []
         (print "generating meta file " metaname "...")
         (flush)
-        (os/mkdir (find-build-dir))
         (create-dirs metaname)
         (spit metaname (string/format
                          "# Metadata for static library %s\n\n%.20p"
