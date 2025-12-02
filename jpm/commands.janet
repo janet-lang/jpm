@@ -325,6 +325,7 @@
   (def tree-bin (string abs-tree sep "bin"))
   (def tree-lib (string abs-tree sep "lib"))
   (def tree-man (string abs-tree sep "man"))
+  (create-dirs abs-tree)
   (os/mkdir abs-tree)
   (os/mkdir tree-bin)
   (os/mkdir tree-lib)

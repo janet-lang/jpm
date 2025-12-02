@@ -197,6 +197,7 @@
   path to the downloaded or cached soure code."
   [url bundle-type &opt tag shallow]
   (def cache (find-cache))
+  (create-dirs cache)
   (os/mkdir cache)
   (def id (filepath-replace (string bundle-type "_" tag "_" url)))
   (def bundle-dir (string cache "/" id))
@@ -213,6 +214,7 @@
   # initialize bundle index
   (unless installed-bundle-index
     (set installed-bundle-index @{})
+    (create-dirs (find-manifest-dir))
     (os/mkdir (find-manifest-dir))
     (each manifest (os/dir (find-manifest-dir))
       (def bundle-data (parse (slurp (string (find-manifest-dir) "/" manifest))))

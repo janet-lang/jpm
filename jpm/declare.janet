@@ -27,6 +27,7 @@
   (array/push (dyn :installed-files) path)
   (def dir (string (dyn :dest-dir "") destdir))
   (task "install" []
+        (create-dirs dir)
         (os/mkdir dir)
         (copy src dir)))
 
@@ -343,6 +344,7 @@
     (rule manifest ["uninstall"]
           (print "generating " manifest "...")
           (flush)
+          (create-dirs manifests)
           (os/mkdir manifests)
           (def has-git (os/stat ".git" :mode))
           (def bundle-type (dyn :bundle-type (if has-git :git :local)))
