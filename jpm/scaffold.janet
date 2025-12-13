@@ -4,7 +4,7 @@
 ### Generate new projects quickly.
 ###
 
-(def- template-peg
+(def- template-peg :flycheck
   "Extract string pieces to generate a templating function"
   (peg/compile
     ~{:sub (group
