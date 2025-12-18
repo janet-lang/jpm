@@ -265,6 +265,7 @@
 (defconf :ldflags :string-array "Linker flags for OS libraries needed when compiling C/C++ artifacts")
 (defconf :lflags :string-array "Non-library linker flags when compiling C/C++ artifacts")
 (defconf :modext :string "File extension for shared objects")
+(defconf :no-core :boolean "Disable core in static binaries")
 (defconf :statext :string "File extension for static libraries")
 (defconf :use-batch-shell :boolean "Switch to turn on if using the Batch shell on windows instead of POSIX shell")
 (defconf :janet-lflags :string-array "Link flags to pass when linking to libjanet")
