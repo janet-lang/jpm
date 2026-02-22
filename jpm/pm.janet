@@ -168,7 +168,9 @@
     (if (not= :directory (os/stat bundle-dir :mode))
       (error (string "did not find cached repository for dependency " url))
       (set fresh true))
-    (when (os/mkdir bundle-dir)
+    (when (do
+            (create-dirs bundle-dir)
+            (os/mkdir bundle-dir))
       (set fresh true)
       (git "-c" "init.defaultBranch=master" "-C" bundle-dir "init")
       (git "-C" bundle-dir "remote" "add" "origin" url)
@@ -185,6 +187,7 @@
   (def has-gz (string/has-suffix? "gz" url))
   (def is-remote (string/find ":" url))
   (def dest-archive (if is-remote (string bundle-dir "/bundle-archive." (if has-gz "tar.gz" "tar")) url))
+  (create-dirs bundle-dir)
   (os/mkdir bundle-dir)
   (when is-remote
     (curl "-sL" url "--output" dest-archive))
@@ -197,7 +200,6 @@
   path to the downloaded or cached soure code."
   [url bundle-type &opt tag shallow]
   (def cache (find-cache))
-  (os/mkdir cache)
   (def id (filepath-replace (string bundle-type "_" tag "_" url)))
   (def bundle-dir (string cache "/" id))
   (case bundle-type
@@ -213,6 +215,7 @@
   # initialize bundle index
   (unless installed-bundle-index
     (set installed-bundle-index @{})
+    (create-dirs (find-manifest-dir))
     (os/mkdir (find-manifest-dir))
     (each manifest (os/dir (find-manifest-dir))
       (def bundle-data (parse (slurp (string (find-manifest-dir) "/" manifest))))
