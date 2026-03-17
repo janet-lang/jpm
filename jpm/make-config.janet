@@ -69,7 +69,7 @@
 
   # Write the config to a temporary file if not provided
   (def config
-    @{:ar  (if iswin "lib.exe" "ar")
+    @{:ar (if iswin "lib.exe" "ar")
       :auto-shebang true
       :binpath binpath
       :c++ (if iswin "cl.exe" "c++")
@@ -92,11 +92,14 @@
       :headerpath headerpath
       :is-msvc iswin
       :janet "janet"
-      :janet-cflags @[]
+      :janet-cflags (case hostos
+                      :illumos @["-DJANET_NO_NANBOX"]
+                      @[])
       :janet-lflags (case hostos
                       :linux @["-lm" "-ldl" "-lrt" "-pthread" "-rdynamic"]
                       :macos @["-lm" "-ldl" "-pthread" "-Wl,-export_dynamic"]
                       :mingw @["-lws2_32" "-lwsock32" "-lpsapi"]
+                      :illumos @["-lm" "-lsocket" "-pthread" "-rdynamic"]
                       :windows @[]
                       @["-lm" "-pthread"])
       :janet-importlib (case hostos
