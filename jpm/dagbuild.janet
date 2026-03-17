@@ -22,7 +22,7 @@
   (repeat (length fibers)
     (def [sig fiber] (ev/take chan))
     (unless (= sig :ok)
-      (each f fibers (ev/cancel f "sibling canceled"))
+      (each fib fibers (ev/cancel fib "sibling canceled"))
       (propagate (fiber/last-value fiber) fiber)))
   res)
 

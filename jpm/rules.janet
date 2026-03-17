@@ -148,7 +148,7 @@
 (defn- rule-impl
   [target deps thunk &opt phony]
   (def all-targets (if (indexed? target) target [target]))
-  (def target (if (indexed? target) (first target) target))
+  (def target :shadow (if (indexed? target) (first target) target))
   (def targets (getrules))
   (unless (get targets target)
     (def new-rule

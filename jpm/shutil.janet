@@ -130,7 +130,7 @@
   # First argument is executable and must not contain spaces, workaround
   # for binaries which have spaces such as `zig cc`.
   # TODO - remove?
-  (def args (tuple ;(string/split " " (args 0)) ;(map string (slice args 1))))
+  (def args :shadow (tuple ;(string/split " " (args 0)) ;(map string (slice args 1))))
   (when (dyn :verbose)
     (flush)
     (print ;(interpose " " args)))
