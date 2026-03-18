@@ -166,9 +166,9 @@
   (print))
 
 (defn- local-rule
-  [rule &opt no-deps]
+  [rul &opt no-deps]
   (import-rules "./project.janet" @{:jpm-no-deps no-deps})
-  (do-rule rule))
+  (do-rule rul))
 
 (defn show-config
   []
@@ -218,8 +218,8 @@
   []
   (def env (import-rules "./project.janet" @{:jpm-no-deps true}))
   (def meta (get env :project))
-  (if-let [deps (meta :dependencies)]
-    (each dep deps
+  (if-let [depz (meta :dependencies)]
+    (each dep depz
       (bundle-install dep))
     (do (print "no dependencies found") (flush))))
 
@@ -305,11 +305,11 @@
           (propagate err f)))))
   (setdyn :pretty-format (if-not (dyn :nocolor) "%.20Q" "%.20q"))
   (setdyn :err-color (if-not (dyn :nocolor) true))
-  (def p (env :project))
-  (def name (p :name))
+  (def proj (env :project))
+  (def name (proj :name))
   (if name (print "Project:     " name))
-  (if-let [r (p :repo)] (print "Repository:  " r))
-  (if-let [a (p :author)] (print "Author:      " a))
+  (if-let [r (proj :repo)] (print "Repository:  " r))
+  (if-let [a (proj :author)] (print "Author:      " a))
   (defn getchunk [buf p]
     (def [line] (parser/where p))
     (getline (string "jpm[" (or name "repl") "]:" line ":" (parser/state p :delimiters) "> ") buf env))

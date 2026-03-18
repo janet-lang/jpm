@@ -12,11 +12,11 @@
   (= "release" (dyn:build-type "release")))
 
 (defn- dofile-codegen
-  [in-path out-path]
-  (with [f (file/open out-path :wbn)]
+  [inp-path outp-path]
+  (with [f (file/open outp-path :wbn)]
     (def env (make-env))
     (put env :out f)
-    (dofile in-path :env env)))
+    (dofile inp-path :env env)))
 
 (defn install-rule
   "Add install and uninstall rule for moving files from src into destdir."
@@ -129,7 +129,7 @@
   (unless (dyn :nostatic)
     (def sname (string (find-build-dir) name statext))
     (def impname (if importlibext (string (find-build-dir) name importlibext) nil))
-    (def opts (merge @{:entry-name ename} opts))
+    (def opts :shadow (merge @{:entry-name ename} opts))
     (def sobjext ".static.o")
     (def sjobjext ".janet.static.o")
 
@@ -212,7 +212,7 @@
   [&keys {:install install :name name :entry entry :headers headers
           :cflags cflags :lflags lflags :deps deps :ldflags ldflags
           :no-compile no-compile :no-core no-core}]
-  (def name (if (is-win-or-mingw) (string name ".exe") name))
+  (def name :shadow (if (is-win-or-mingw) (string name ".exe") name))
   (def dest (string (find-build-dir) name))
   (create-executable @{:cflags cflags :lflags lflags :ldflags ldflags :no-compile no-compile} entry dest no-core)
   (if no-compile

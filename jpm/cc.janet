@@ -118,7 +118,7 @@
       @[]))
   (when-let [import-lib (dyn :janet-importlib)]
     (array/push dep-importlibs import-lib))
-  (def dep-importlibs (distinct dep-importlibs))
+  (def dep-importlibs :shadow (distinct dep-importlibs))
   (def ldflags [;(opt opts :ldflags []) ;dep-ldflags])
   (rule target objects
         (unless (dyn:verbose) (print "creating native module " target "...") (flush))

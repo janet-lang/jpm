@@ -233,7 +233,7 @@
 (defn bundle-install
   "Install a bundle from a git repository."
   [bundle &opt no-deps force-update]
-  (def bundle (resolve-bundle bundle))
+  (def bundle :shadow (resolve-bundle bundle))
   (when (or (not (is-bundle-installed bundle)) force-update)
     (def {:url url
           :tag tag
@@ -362,7 +362,7 @@
   a project.janet that loads in the original project.janet file with some settings changed."
   [path &opt options]
   (def current (abspath (os/cwd)))
-  (def options (merge-into @{} options))
+  (def options :shadow (merge-into @{} options))
   (def new-build-path (string path "/build/"))
   (put options :buildpath new-build-path)
   (def dest (string path "/project.janet"))
