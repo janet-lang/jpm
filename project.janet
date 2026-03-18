@@ -28,25 +28,26 @@
   :is-janet true)
 
 # Install the default configuration for bootstrapping
-(def confpath (string (dyn :modpath) "/jpm/default-config.janet"))
+(def confpath/old (string (dyn :modpath) "/jpm/default-config.janet"))
+(def confpath/new (string (dyn :dest-dir) confpath/old))
 
 (if-let [bc (os/getenv "JPM_BOOTSTRAP_CONFIG")]
-  (install-file-rule bc confpath)
+  (install-file-rule bc confpath/old)
 
   # Otherwise, keep the current config or generate a new one
   (do
-    (if (os/stat confpath :mode)
+    (if (os/stat confpath/old :mode)
 
       # Keep old config
       (do
-        (def old (slurp confpath))
+        (def old (slurp confpath/old))
         (task "install" []
-              (print "keeping old config at " confpath)
-              (spit confpath old)))
+              (print "keeping old config from " confpath/old)
+              (spit confpath/new old)))
 
       # Generate new config
       (do
         (task "install" []
             (print "no existing config found, generating a default...")
-            (spit confpath (generate-config))
-            (print "created config file at " confpath))))))
+            (spit confpath/new (generate-config))
+            (print "created config file at " confpath/new))))))
