@@ -227,6 +227,16 @@
       (when install
         (install-rule dest (dyn:binpath))))))
 
+(defn- find-shebang-janet
+  "Find absolute path to janet executable for auto-shebang on Posix systems"
+  []
+  (def binpath-check (string (dyn:binpath) "/janet"))
+  (if (os/stat binpath-check :mode) (break (os/realpath binpath-check)))
+  (def [ok selfexe] (protect (exec-slurp "which" (dyn *executable* "janet"))))
+  (if ok
+    (string/trim selfexe)
+    "/usr/bin/env janet"))
+
 (defn declare-binscript
   ``Declare a janet file to be installed as an executable script. Creates
   a shim on windows. If hardcode is true, will insert code into the script
@@ -249,7 +259,7 @@
                 (def second-line (string/format "(put root-env :syspath %v)\n" syspath))
                 (def rest (:read f :all))
                 (string (if auto-shebang
-                          (string "#!" (dyn:binpath) "/janet\n"))
+                          (string "#!" (find-shebang-janet) "\n"))
                         first-line (if hardcode second-line) rest)))
             (def destpath (string (dyn :dest-dir "") path))
             (create-dirs destpath)
