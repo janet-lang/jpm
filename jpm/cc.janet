@@ -75,6 +75,18 @@
     (string "-I" (dyn:modpath))
     oflag])
 
+(defn get-janet-h
+  "Get the path to janet.h. We add implicit dependency on janet.h to object files
+  to ensure complete rebuilds when the interpreter is updated."
+  []
+  (def hp (dyn:headerpath))
+  (def loc-1 (string hp "/janet.h"))
+  (def loc-2 (string hp "/janet/janet.h"))
+  (cond # FIX - cache stat calls, maybe save time? We should measure before though, file system caches are usually ok.
+    (os/stat loc-1 :mode) loc-1
+    (os/stat loc-2 :mode) loc-2
+    (error (string "unabled to find janet.h: checked " loc-1 ", " loc-2))))
+
 (defn entry-name
   "Name of symbol that enters static compilation of a module."
   [name]
@@ -91,7 +103,7 @@
                        []))
   (def defines [;(make-defines (opt opts :defines {})) ;entry-defines])
   (def headers (or (opts :headers) []))
-  (rule dest [src ;headers]
+  (rule dest [src ;headers (get-janet-h)]
         (unless (dyn:verbose) (print "compiling " src " to " dest "...") (flush))
         (create-dirs dest)
         (if (dyn :is-msvc)
@@ -120,7 +132,7 @@
     (array/push dep-importlibs import-lib))
   (def dep-importlibs :shadow (distinct dep-importlibs))
   (def ldflags [;(opt opts :ldflags []) ;dep-ldflags])
-  (rule target objects
+  (rule target [;objects (get-janet-h)]
         (unless (dyn:verbose) (print "creating native module " target "...") (flush))
         (create-dirs target)
         (if (dyn :is-msvc)
@@ -288,7 +300,7 @@ int main(int argc, const char **argv) {
   (def cimage_dest (string dest ".c"))
   (def no-compile (opts :no-compile))
   (def bd (find-build-dir))
-  (rule (if no-compile cimage_dest dest) [source]
+  (rule (if no-compile cimage_dest dest) [source (get-janet-h)]
         (print "generating executable c source " cimage_dest " from " source "...")
         (flush)
         (create-dirs dest)

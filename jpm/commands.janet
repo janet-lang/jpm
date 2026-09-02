@@ -202,7 +202,7 @@
   [& repo]
   (if (empty? repo)
     (local-rule "install")
-    (each rep repo (bundle-install rep))))
+    (each rep repo (bundle-install rep nil false true))))
 
 (defn test
   []
@@ -285,7 +285,7 @@
 
 (defn update-pkgs
   []
-  (bundle-install (dyn:pkglist) false true))
+  (bundle-install (dyn:pkglist) false true true))
 
 (defn quickbin
   [input output]

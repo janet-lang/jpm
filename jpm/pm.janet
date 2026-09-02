@@ -195,13 +195,17 @@
   (def tar-flags (if has-gz "-xzf" "-xf"))
   (tar tar-flags dest-archive "--strip-components=1" "-C" bundle-dir))
 
+(defn- find-bundle
+  [url bundle-type &opt tag]
+  (def cache (find-cache))
+  (def id (filepath-replace (string bundle-type "_" tag "_" url)))
+  (string cache "/" id))
+
 (defn download-bundle
   "Download the package source (using git) to the local cache. Return the
   path to the downloaded or cached soure code."
   [url bundle-type &opt tag shallow]
-  (def cache (find-cache))
-  (def id (filepath-replace (string bundle-type "_" tag "_" url)))
-  (def bundle-dir (string cache "/" id))
+  (def bundle-dir (find-bundle url bundle-type tag))
   (case bundle-type
     :git (download-git-bundle bundle-dir url tag shallow)
     :tar (download-tar-bundle bundle-dir url)
@@ -232,15 +236,18 @@
 
 (defn bundle-install
   "Install a bundle from a git repository."
-  [bundle &opt no-deps force-update]
+  [bundle &opt no-deps force-update force-build]
   (def bundle :shadow (resolve-bundle bundle))
-  (when (or (not (is-bundle-installed bundle)) force-update)
+  (def force-sync (or (not (is-bundle-installed bundle)) force-update))
+  (when (or force-sync force-build)
     (def {:url url
           :tag tag
           :type bundle-type
           :shallow shallow}
       bundle)
-    (def bdir (download-bundle url bundle-type tag shallow))
+    (def bdir (if force-sync
+                (download-bundle url bundle-type tag shallow)
+                (find-bundle url bundle-type tag)))
     (def olddir (os/cwd))
     (defer (os/cd olddir)
       (os/cd bdir)
@@ -340,7 +347,6 @@
 (defn update-installed
   "Update all previously installed packages to their latest versions."
   []
-  (clear-cache)
   (def to-update (os/dir (find-manifest-dir)))
   (var updated-count 0)
   (each p to-update
@@ -349,7 +355,7 @@
     (put new-bundle :tag nil)
     (try
       (do
-        (bundle-install new-bundle true true)
+        (bundle-install new-bundle true true true)
         (++ updated-count))
       ([err f]
        (debug/stacktrace f err (string "unable to update dependency " p ": ")))))
