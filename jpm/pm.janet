@@ -340,6 +340,7 @@
 (defn update-installed
   "Update all previously installed packages to their latest versions."
   []
+  (clear-cache)
   (def to-update (os/dir (find-manifest-dir)))
   (var updated-count 0)
   (each p to-update
